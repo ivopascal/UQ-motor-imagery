@@ -53,7 +53,7 @@ def process_files(subject_id, trial_id):
     - base_dir: str, the base directory where the data files are stored.
     """
 
-    input_file = read_data_me(subject_id, trial_id)
+    input_file = read_data_me(subject_id, trial_id, "../../../data/data_mytry/rawData")
     preprocessed_df = apply_bandpass_filter(input_file)
     return preprocessed_df
 

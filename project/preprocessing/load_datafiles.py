@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 
-def construct_filename(subject_id, trial_id, base_dir="../../data/", prefix="", datatype="csv"):
+def construct_filename(subject_id, trial_id, base_dir="../../data/", prefix="", datatype=".csv"):
     """
     Constructs the filename based on the subject and trial numbers.
 
