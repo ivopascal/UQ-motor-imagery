@@ -10,6 +10,8 @@ from moabb.evaluations import CrossSessionEvaluation
 from moabb.paradigms import LeftRightImagery
 from moabb.pipelines.features import LogVariance
 
+# from moabb.pipelines.deep_learning import KerasShallowConvNet is dus een keras shallowconvnet
+
 moabb.set_log_level("info")
 
 pipelines = {}
@@ -40,3 +42,4 @@ evaluation = CrossSessionEvaluation(
 results = evaluation.process(pipelines)
 
 print(results.head())
+
