@@ -30,7 +30,7 @@ for subject_id in range(1, num_subjects + 1):
 
         # Write the DataFrame to a CSV file
         filename = f"subject_{subject_id}_trial_{trial_id}.csv"
-        full_path = os.path.join("../../data/rawData", filename)
+        full_path = os.path.join("../../../data/data_mytry/rawData", filename)
 
         # Write the DataFrame to a CSV file at the specified path
         df.to_csv(full_path, index=False)

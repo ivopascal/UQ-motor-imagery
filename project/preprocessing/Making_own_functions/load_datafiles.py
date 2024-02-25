@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 
-def construct_filename(subject_id, trial_id, base_dir="../../data/preprocessed", prefix=""):
+def construct_filename(subject_id, trial_id, base_dir="../../data/", prefix=""):
     """
     Constructs the filename based on the subject and trial numbers.
 

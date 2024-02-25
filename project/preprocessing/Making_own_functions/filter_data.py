@@ -1,6 +1,6 @@
 import pandas as pd
 from scipy.signal import butter, sosfilt
-from Thesis.project.preprocessing.load_datafiles import construct_filename, read_data
+from Thesis.project.preprocessing.Making_own_functions.load_datafiles import read_data
 
 # The filter functions are taken from https://stackoverflow.com/questions/12093594/how-to-implement-band-pass-butterworth-filter-with-scipy-signal-butter
 
