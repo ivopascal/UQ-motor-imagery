@@ -1,13 +1,10 @@
 import os
 
-from moabb.datasets import BNCI2014_001
-from moabb.paradigms import MotorImagery
-
 import filter_data
-from Thesis.project.preprocessing.Making_own_functions.load_datafiles import construct_filename
+from Thesis.project.preprocessing.load_datafiles import construct_filename
 
 
-def saveFiles(dataFrame, subject_id, trial_id, base_dir="../../data"):
+def saveFiles(dataFrame, subject_id, trial_id, base_dir="../../data/data_mytry"):
     preprocess_dir = os.path.join(base_dir, "preprocessed")
     if not os.path.exists(preprocess_dir):
         os.makedirs(preprocess_dir)

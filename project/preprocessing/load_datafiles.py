@@ -1,7 +1,9 @@
 import pandas as pd
 import os
+import numpy as np
 
-def construct_filename(subject_id, trial_id, base_dir="../../data/", prefix=""):
+
+def construct_filename(subject_id, trial_id, base_dir="../../data/", prefix="", datatype=".csv"):
     """
     Constructs the filename based on the subject and trial numbers.
 
@@ -14,11 +16,12 @@ def construct_filename(subject_id, trial_id, base_dir="../../data/", prefix=""):
     Returns:
     - str: the full path to the data file.
     """
-    filename = f"{prefix}subject_{subject_id}_trial_{trial_id}.csv"
+    filename = f"{prefix}subject_{subject_id}_trial_{trial_id}{datatype}"
     full_path = os.path.join(base_dir, filename)
     return full_path
 
-def read_data(subject_id, trial_id, base_dir="../../data/preprocessed"):
+
+def read_data_me(subject_id, trial_id, base_dir="../../data/data_mytry/preprocessed"):
     """
     Reads the data file corresponding to the given subject and trial numbers into a pandas DataFrame.
 
@@ -40,3 +43,27 @@ def read_data(subject_id, trial_id, base_dir="../../data/preprocessed"):
     # Read the CSV file into a DataFrame
     df = pd.read_csv(file_path)
     return df
+
+
+def read_data_moabb(subject_id, trial_id, base_dir="../../data/data_moabb_try/preprocessed"):
+
+    # Replace 'path_to_file' with the actual file paths you saved the arrays to
+    x_file_path = construct_filename(subject_id, trial_id, base_dir, "X_preprocessed_", ".npy")
+    y_file_path = construct_filename(subject_id, trial_id, base_dir, "y_preprocessed_", ".npy")
+    metadata_file_path = construct_filename(subject_id, trial_id, base_dir, "metadata_preprocessed_", ".npy")
+
+    # Loading the arrays from the saved files
+    X_loaded = np.load(x_file_path, allow_pickle=True)
+    y_loaded = np.load(y_file_path, allow_pickle=True)
+    metadata_loaded = np.load(metadata_file_path, allow_pickle=True)
+
+    return X_loaded, y_loaded, metadata_loaded
+
+
+# def main():
+#     x, y, metadata = read_data_moabb(1, 1)
+#     print(x,y,metadata)
+#
+#
+# if __name__ == '__main__':
+#     main()
