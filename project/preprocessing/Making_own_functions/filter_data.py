@@ -1,6 +1,6 @@
 import pandas as pd
 from scipy.signal import butter, sosfilt
-from Thesis.project.preprocessing.Making_own_functions.load_datafiles import read_data
+from Thesis.project.preprocessing.load_datafiles import read_data_me
 
 # The filter functions are taken from https://stackoverflow.com/questions/12093594/how-to-implement-band-pass-butterworth-filter-with-scipy-signal-butter
 
@@ -53,7 +53,7 @@ def process_files(subject_id, trial_id):
     - base_dir: str, the base directory where the data files are stored.
     """
 
-    input_file = read_data(subject_id, trial_id)
+    input_file = read_data_me(subject_id, trial_id)
     preprocessed_df = apply_bandpass_filter(input_file)
     return preprocessed_df
 

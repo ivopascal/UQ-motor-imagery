@@ -4,7 +4,7 @@ import numpy as np
 from moabb.datasets import BNCI2014_001
 from moabb.paradigms import MotorImagery
 
-from Thesis.project.preprocessing.Making_own_functions.load_datafiles import construct_filename
+from Thesis.project.preprocessing.load_datafiles import construct_filename
 
 
 def saveFiles(X, y, metadata, subject_id, trial_id, base_dir="../../../data/data_moabb_try"):
@@ -14,9 +14,9 @@ def saveFiles(X, y, metadata, subject_id, trial_id, base_dir="../../../data/data
         os.makedirs(preprocess_dir)
 
     # Construct filenames for X, y, and metadata
-    x_file = construct_filename(subject_id, trial_id, preprocess_dir, "X_preprocessed_") + ".npy"
-    y_file = construct_filename(subject_id, trial_id, preprocess_dir, "y_preprocessed_") + ".npy"
-    metadata_file = construct_filename(subject_id, trial_id, preprocess_dir, "metadata_preprocessed_") + ".npy"
+    x_file = construct_filename(subject_id, trial_id, preprocess_dir, "X_preprocessed_", ".npy")
+    y_file = construct_filename(subject_id, trial_id, preprocess_dir, "y_preprocessed_", ".npy")
+    metadata_file = construct_filename(subject_id, trial_id, preprocess_dir, "metadata_preprocessed_", ".npy")
 
     # Save the arrays
     np.save(x_file, X)
