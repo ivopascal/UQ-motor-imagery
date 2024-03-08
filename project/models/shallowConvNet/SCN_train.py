@@ -9,6 +9,8 @@ from keras.utils import np_utils
 from sklearn.preprocessing import LabelEncoder
 import numpy as np
 
+from Thesis.project.preprocessing.load_datafiles_traintest import read_data_traintest
+
 
 def main():
 
@@ -25,30 +27,31 @@ def main():
 
     model.summary()
 
-    for i in range(5):
-        for j in range(2):
-            i = i+1
-            j = j+1
+    # for i in range(5):
+    #     for j in range(2):
+    #         i = i+1
+    #         j = j+1
+    #X, y, metadata = read_data_moabb(i, j, base_dir="../../../data/data_moabb_try/preprocessed")
 
-            X, y, metadata = read_data_moabb(i, j, base_dir="../../../data/data_moabb_try/preprocessed")
-            X_reshaped = X.reshape(X.shape[0], X.shape[1], X.shape[2], 1)
+    X, y = read_data_traintest('train',  base_dir="../../../data/train_test_data/preprocessed")
+    X_reshaped = X.reshape(X.shape[0], X.shape[1], X.shape[2], 1)
 
-            unique_labels = np.unique(y)
-            num_unique_labels = len(unique_labels)
-            assert num_unique_labels == 4, "The number of unique labels does not match the expected number of classes."
+    unique_labels = np.unique(y)
+    num_unique_labels = len(unique_labels)
+    assert num_unique_labels == 4, "The number of unique labels does not match the expected number of classes."
 
-            label_encoder = LabelEncoder()
-            y_integers = label_encoder.fit_transform(y)
+    label_encoder = LabelEncoder()
+    y_integers = label_encoder.fit_transform(y)
 
-            y_categorical = np_utils.to_categorical(y_integers, num_classes=num_unique_labels)
+    y_categorical = np_utils.to_categorical(y_integers, num_classes=num_unique_labels)
 
-            model.fit(
-                X_reshaped,
-                y_categorical,
-                callbacks=[early_stopping],
-                epochs=100, batch_size=64, validation_split=0.1
-            )
-            #model.predict(X_reshaped)
+    model.fit(
+        X_reshaped,
+        y_categorical,
+        callbacks=[early_stopping],
+        epochs=100, batch_size=64, validation_split=0.2
+    )
+    #model.predict(X_reshaped)
 
     model.save('../saved_trained_models/SCN/SCN_MOABB.h5')
 
