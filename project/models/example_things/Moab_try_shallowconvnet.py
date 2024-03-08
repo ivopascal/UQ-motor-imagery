@@ -10,6 +10,7 @@ import numpy as np
 
 
 def main():
+    
     X, y, metadata = read_data_moabb(1, 1, base_dir="../../../data/data_moabb_try/preprocessed")
     #print(y)
 
