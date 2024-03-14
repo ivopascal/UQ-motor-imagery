@@ -34,7 +34,7 @@ def main():
     num_subjects = 9
     num_trials_per_subject = 2
 
-    train_subjects = 7
+    train_subjects = 8
 
     X_train, y_train, X_test, y_test = [], [], [], []
 

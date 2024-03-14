@@ -5,15 +5,11 @@ from matplotlib import pyplot as plt
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 from sklearn.preprocessing import LabelEncoder
 
-from Thesis.project.preprocessing.load_datafiles import read_data_moabb
-
-from keras.models import Model
-
 from keras import backend as K
 import seaborn as sns
 
+from Thesis.project.preprocessing.load_datafiles import read_data_moabb
 from Thesis.project.preprocessing.load_datafiles_traintest import read_data_traintest
-
 
 def square(x):
     return K.square(x)
@@ -35,22 +31,40 @@ def evaluate_model(y_pred, y_true):
     plt.xlabel("Predicted Labels")
     plt.ylabel("True Labels")
     plt.title("Confusion Matrix")
-    #plt.savefig('confusion.png')
     plt.show()
 
 
-def main():
+def evaluate_folds():
+    num_subjects = 8  # Adjust based on your cross-validation setup
+    # Loop through each fold's model and evaluate it
+    for i in range(1, num_subjects + 1):
+        model_path = f'../saved_trained_models/SCN/Crossval/SCN_MOABB_fold_{i}.h5'
+        loaded_model = load_model(model_path, custom_objects={'square': square, 'log': log})
+
+        # Load the corresponding test data for the fold
+        # Assuming you have a mechanism to load test data for each fold (adjust as necessary)
+        X, y, _ = read_data_moabb(subject_id=i, trial_id=2, base_dir="../../../data/data_moabb_try/preprocessed")
+        X_reshaped = X.reshape(X.shape[0], X.shape[1], X.shape[2], 1)
+
+        label_encoder = LabelEncoder()
+        y_integers = label_encoder.fit_transform(y)
+        y_categorical = np_utils.to_categorical(y_integers)
+
+        predictions = loaded_model.predict(X_reshaped)
+        predicted_classes = np.argmax(predictions, axis=1)
+        true_classes = y_integers
+
+        print(f"Evaluating fold {i}")
+        evaluate_model(predicted_classes, true_classes)
+
+
+def evaluate_overall_model():
     loaded_model = load_model('../saved_trained_models/SCN/SCN_CROSS.h5',
                               custom_objects={'square': square, 'log': log})
 
-    # for i in range(5, 8):
-    #     for j in range(2):
-    #         i = i + 1
-    #         j = j + 1
-    #
-    #         X, y, metadata = read_data_moabb(i, j, base_dir="../../../data/data_moabb_try/preprocessed")
-
     X, y = read_data_traintest('test', base_dir="../../../data/train_test_data/preprocessed")
+    #X, y, metadata = read_data_moabb(9, 2, base_dir="../../../data/data_moabb_try/preprocessed")
+
     X_reshaped = X.reshape(X.shape[0], X.shape[1], X.shape[2], 1)
 
     unique_labels = np.unique(y)
@@ -69,6 +83,10 @@ def main():
     true_classes = y_integers
 
     evaluate_model(predicted_classes, true_classes)
+
+def main():
+    #evaluate_folds()
+    evaluate_overall_model()
 
 
 if __name__ == '__main__':
