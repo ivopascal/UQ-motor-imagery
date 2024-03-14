@@ -44,6 +44,8 @@ def main():
             # print(y.shape)  #shape is (576,)
             # print(metadata.shape)   #shape is (576, 3)
 
+            # HIER GAAT IETS FOUT MET TRIALS, waarom doe ik daar nu niks mee?
+
             saveFiles(X, y, metadata, subject_id, trial_id)
 
 
