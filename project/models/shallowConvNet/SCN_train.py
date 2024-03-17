@@ -31,7 +31,7 @@ def main():
     #     for j in range(2):
     #         i = i+1
     #         j = j+1
-    #X, y, metadata = read_data_moabb(i, j, base_dir="../../../data/data_moabb_try/preprocessed")
+    #         X, y, metadata = read_data_moabb(i, j, base_dir="../../../data/data_moabb_try/preprocessed")
 
     X, y = read_data_traintest('train',  base_dir="../../../data/train_test_data/preprocessed")
     X_reshaped = X.reshape(X.shape[0], X.shape[1], X.shape[2], 1)
@@ -51,9 +51,8 @@ def main():
         callbacks=[early_stopping],
         epochs=100, batch_size=64, validation_split=0.2
     )
-    #model.predict(X_reshaped)
 
-    model.save('../saved_trained_models/SCN/SCN_MOABB.h5')
+    # model.save('../saved_trained_models/SCN/SCN_MOABB.h5')
 
 
 
