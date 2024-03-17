@@ -34,19 +34,19 @@ def main():
     )
 
     num_subjects = 9
-    num_trials_per_subject = 2
+    # num_trials_per_subject = 2
 
     for subject_id in range(1, num_subjects + 1):
-        for trial_id in range(1, num_trials_per_subject + 1):
-            subjects = [subject_id]
-            X, y, metadata = paradigm.get_data(dataset=dataset, subjects=subjects)
-            # print(X.shape)  #shape is (576, 22, 1001)
-            # print(y.shape)  #shape is (576,)
-            # print(metadata.shape)   #shape is (576, 3)
+        # for trial_id in range(1, num_trials_per_subject + 1):
+        subjects = [subject_id]
+        X, y, metadata = paradigm.get_data(dataset=dataset, subjects=subjects)
+        # print(X.shape)  #shape is (576, 22, 1001)
+        # print(y.shape)  #shape is (576,)
+        # print(metadata.shape)   #shape is (576, 3)
 
-            # HIER GAAT IETS FOUT MET TRIALS, waarom doe ik daar nu niks mee?
+        # HIER GAAT IETS FOUT MET TRIALS, waarom doe ik daar nu niks mee?
 
-            saveFiles(X, y, metadata, subject_id, trial_id)
+        saveFiles(X, y, metadata, subject_id)   #, trial_id)
 
 
 
