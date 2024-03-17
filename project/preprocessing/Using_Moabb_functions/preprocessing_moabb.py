@@ -7,23 +7,23 @@ from moabb.paradigms import MotorImagery
 from Thesis.project.preprocessing.load_datafiles import construct_filename
 
 
-def saveFiles(X, y, metadata, subject_id, trial_id, base_dir="../../../data/data_moabb_try"):
+def saveFiles(X, y, metadata, subject_id, base_dir="../../../data/data_moabb_try"):
 
     preprocess_dir = os.path.join(base_dir, "preprocessed")
     if not os.path.exists(preprocess_dir):
         os.makedirs(preprocess_dir)
 
     # Construct filenames for X, y, and metadata
-    x_file = construct_filename(subject_id, trial_id, preprocess_dir, "X_preprocessed_", ".npy")
-    y_file = construct_filename(subject_id, trial_id, preprocess_dir, "y_preprocessed_", ".npy")
-    metadata_file = construct_filename(subject_id, trial_id, preprocess_dir, "metadata_preprocessed_", ".npy")
+    x_file = construct_filename(subject_id, preprocess_dir, "X_preprocessed_", ".npy")
+    y_file = construct_filename(subject_id, preprocess_dir, "y_preprocessed_", ".npy")
+    metadata_file = construct_filename(subject_id, preprocess_dir, "metadata_preprocessed_", ".npy")
 
     # Save the arrays
     np.save(x_file, X)
     np.save(y_file, y)
     np.save(metadata_file, metadata)
 
-    print(f"Preprocessed data written for {subject_id, trial_id}")
+    print(f"Preprocessed data written for {subject_id}")
     print(f"Written to {preprocess_dir}")
 
 
