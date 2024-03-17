@@ -14,73 +14,59 @@ from sklearn.utils import compute_class_weight, compute_sample_weight
 from Thesis.project.models.Riemann.MDM_model import MDM  # this is same to pyriemann
 from Thesis.project.preprocessing.load_datafiles import read_data_moabb
 import warnings
+import mne
+import pickle
 
 warnings.filterwarnings('ignore', category=FutureWarning)
 
 
-def printLabels(y_train, y_test):
-    print("Yshape TRAINING: ", y_train.shape)
-    print("left_hand:", sum(y_train == 'left_hand'))
-    print("right_hand:", sum(y_train == 'right_hand'))
-    print("Feet:", sum(y_train == 'feet'))
-    print("tongue:", sum(y_train == 'tongue'))
-
-    print("Yshape TESTING: ", y_test.shape)
-    print("left_hand:", sum(y_test == 'left_hand'))
-    print("right_hand:", sum(y_test == 'right_hand'))
-    print("Feet:", sum(y_test == 'feet'))
-    print("tongue:", sum(y_test == 'tongue'))
-
-
 def main():
     dataset = BNCI2014_001()
-    paradigm = MotorImagery(
-        n_classes=4, fmin=7.5, fmax=30, tmin=0, tmax=None
-    )
+    dataset.subject_list = [1, 2, 3, 4, 5, 6, 7, 8]
+    sessions = dataset.get_data(subjects=dataset.subject_list)
 
-    subjects = [1, 2, 3, 4, 5, 6, 7, 8]  # You can add more subjects
-    dataset.subject_list = subjects
-    X, y, metadata = paradigm.get_data(dataset=dataset, subjects=subjects)
+    all_data = []
+    all_labels = []
 
+    for subject_id in dataset.subject_list:
+        for session_name in ["0train", "1test"]:  # Iterate over sessions
+            for run_id in range(5):  # Assuming 5 runs per session
+                run_name = str(run_id)
+                try:
+                    raw = dataset.get_data([subject_id])[subject_id][session_name][run_name]
+                    data, times = raw[:, :]
+                    events, event_ids = mne.events_from_annotations(raw)
 
-    # Compute covariance matrices from the raw EEG signals
-    cov_estimator = Covariances(estimator='lwf')  # You can choose other estimators as well
-    X_cov = cov_estimator.fit_transform(X)
+                    # Segment and label your data based on 'events'
+                    # Assuming each event marks the start of an epoch
+                    for event in events:
+                        start = event[0]  # Start index of the event
+                        end = start + 1000  # Example: end index, assuming a fixed epoch length
+                        if end < data.shape[1]:  # Ensure the epoch does not exceed data bounds
+                            epoch = data[:, start:end]
+                            all_data.append(epoch)
+                            all_labels.append(event[2])  # The label is the event ID
 
-    print("Shape X:", X_cov.shape, "Shape y:", y.shape)
-    # This are the dimensions before covariance: Shape X: (4608, 22, 1001) Shape y: (4608,) after covariance 4608,22,22
+                except KeyError:
+                    # Handle the case where a session/run might not be available
+                    print(f"Data for subject {subject_id}, session {session_name}, run {run_name} not found.")
+
+    # Convert lists to numpy arrays
+    all_data = np.array(all_data)
+    all_labels = np.array(all_labels)
+
+    # Riemannian processing
+    cov_estimator = Covariances(estimator='lwf')
+    X_cov = cov_estimator.fit_transform(all_data)
+
+    # Split data for training and testing
+    X_train, X_test, y_train, y_test = train_test_split(X_cov, all_labels, test_size=0.2, random_state=42)
 
     model = MDM(metric=dict(mean='riemann', distance='riemann'))
-
-    X_train, X_test, y_train, y_test = train_test_split(X_cov, y, test_size=0.2, random_state=42)
-
-    #printLabels(y_train, y_test)
-
-    weights = compute_sample_weight('balanced', y=y_train)
-
-    # model.fit(X_train, y_train, sample_weight=weights)
-    #
-    # # Predict the labels for the test set
-    # y_pred = model.predict(X_test)
-    #
-    # # Calculate and print the accuracy
-    # accuracy = accuracy_score(y_test, y_pred)
-    # print(f"Accuracy: {accuracy}")
-
-    # scores = cross_val_score(model, X_cov, y, cv=8, scoring='accuracy')
-    #
-    # # Print the accuracy for each fold and the average accuracy
-    # print(f"Cross-Validation Accuracy Scores: {scores}")
-    # print(f"Average Cross-Validation Accuracy: {np.mean(scores)}")
 
     cv = KFold(n_splits=8, shuffle=True, random_state=42)
     scores = cross_val_score(model, X_test, y_test, cv=cv, n_jobs=1)
 
-    # # Printing the results
-    # class_balance = np.mean(y_test == y_test[0])
-    # class_balance = max(class_balance, 1. - class_balance)
-    # print("MDM Classification accuracy: %f / Chance level: %f" % (np.mean(scores),
-    #                                                               class_balance))
     label_encoder = LabelEncoder()
     y_test_encoded = label_encoder.fit_transform(y_test)
 
@@ -89,6 +75,16 @@ def main():
     most_frequent_class_proportion = np.max(class_counts) / len(y_test_encoded)
 
     print("MDM Classification accuracy: %f / Chance level: %f" % (np.mean(scores), most_frequent_class_proportion))
+
+    # Save the model to a file
+    model_filename = 'riemannian_model.pkl'
+    with open(model_filename, 'wb') as file:
+        pickle.dump(model, file)
+
+    print(f"Model saved to {model_filename}")
+
+    # TODO: maken van een test file die hetzelfde doet maar alleen subject 9 alle data van laad
+
 
 if __name__ == '__main__':
     main()
