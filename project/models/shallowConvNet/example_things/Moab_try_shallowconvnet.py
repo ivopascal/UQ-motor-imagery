@@ -1,6 +1,6 @@
 from keras.optimizers import Adam
 
-from Thesis.project.models.example_things.Moab_try_shallowmodel import ShallowConvNet
+from Thesis.project.models.shallowConvNet.example_things.Moab_try_shallowmodel import ShallowConvNet
 from Thesis.project.preprocessing.load_datafiles import read_data_moabb
 from keras.utils import np_utils
 
@@ -11,7 +11,7 @@ import numpy as np
 
 def main():
     
-    X, y, metadata = read_data_moabb(1, 1, base_dir="../../../data/data_moabb_try/preprocessed")
+    X, y, metadata = read_data_moabb(1, 1, base_dir="../../../../data/data_moabb_try/preprocessed")
     #print(y)
 
     # model = ShallowConvNet(nb_classes=4)

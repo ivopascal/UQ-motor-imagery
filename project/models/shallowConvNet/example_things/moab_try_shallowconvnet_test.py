@@ -17,7 +17,7 @@ def log(x):
 
 
 def main():
-    X, y, metadata = read_data_moabb(8, 1, base_dir="../../../data/data_moabb_try/preprocessed")
+    X, y, metadata = read_data_moabb(8, 1, base_dir="../../../../data/data_moabb_try/preprocessed")
 
     X_reshaped = X.reshape(X.shape[0], X.shape[1], X.shape[2], 1)
 

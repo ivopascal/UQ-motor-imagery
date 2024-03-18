@@ -64,17 +64,26 @@ def main():
 
     model = MDM(metric=dict(mean='riemann', distance='riemann'))
 
-    cv = KFold(n_splits=8, shuffle=True, random_state=42)
-    scores = cross_val_score(model, X_test, y_test, cv=cv, n_jobs=1)
+    model.fit(X_train, y_train)
 
-    label_encoder = LabelEncoder()
-    y_test_encoded = label_encoder.fit_transform(y_test)
+    # Prediction and evaluation
+    y_pred = model.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+    print(f"Accuracy: {accuracy}")
 
-    # Now, y_test_encoded contains integer labels
-    class_counts = np.bincount(y_test_encoded)
-    most_frequent_class_proportion = np.max(class_counts) / len(y_test_encoded)
-
-    print("MDM Classification accuracy: %f / Chance level: %f" % (np.mean(scores), most_frequent_class_proportion))
+    # exit()
+    #
+    # cv = KFold(n_splits=8, shuffle=True, random_state=42)
+    # scores = cross_val_score(model, X_test, y_test, cv=cv, n_jobs=1)
+    #
+    # label_encoder = LabelEncoder()
+    # y_test_encoded = label_encoder.fit_transform(y_test)
+    #
+    # # Now, y_test_encoded contains integer labels
+    # class_counts = np.bincount(y_test_encoded)
+    # most_frequent_class_proportion = np.max(class_counts) / len(y_test_encoded)
+    #
+    # print("MDM Classification accuracy: %f / Chance level: %f" % (np.mean(scores), most_frequent_class_proportion))
 
     # Save the model to a file
     model_filename = 'riemannian_model.pkl'
@@ -83,7 +92,6 @@ def main():
 
     print(f"Model saved to {model_filename}")
 
-    # TODO: maken van een test file die hetzelfde doet maar alleen subject 9 alle data van laad
 
 
 if __name__ == '__main__':

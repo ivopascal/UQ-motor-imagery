@@ -1,6 +1,6 @@
 from keras.optimizers import Adam
 
-from Thesis.project.models.example_things.Moab_try_shallowmodel import ShallowConvNet
+from Thesis.project.models.shallowConvNet.example_things.Moab_try_shallowmodel import ShallowConvNet
 from Thesis.project.preprocessing.load_datafiles import read_data_moabb
 from keras.utils import np_utils
 
@@ -18,7 +18,7 @@ def main():
             i = i+1
             j = j+1
 
-            X, y, metadata = read_data_moabb(i, j, base_dir="../../../data/data_moabb_try/preprocessed")
+            X, y, metadata = read_data_moabb(i, j, base_dir="../../../../data/data_moabb_try/preprocessed")
             X_reshaped = X.reshape(X.shape[0], X.shape[1], X.shape[2], 1)
 
             unique_labels = np.unique(y)
