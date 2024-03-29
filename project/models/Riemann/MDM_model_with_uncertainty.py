@@ -215,7 +215,7 @@ class MDM(BaseEstimator, ClassifierMixin, TransformerMixin):
 
         dist = np.sort(dist, axis=1)
 
-        uncertainty = 1 - dist.min(axis=1)
+        uncertainty = dist.min(axis=1)      # for certainty do 1 - dist.min(axis=1)
 
         # D1 = dist[:, 0]
         # D2 = dist[:, 1]
