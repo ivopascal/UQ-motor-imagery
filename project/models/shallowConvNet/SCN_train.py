@@ -87,7 +87,7 @@ def main():
             ,verbose=0,
         )
 
-        model.save(f'../saved_trained_models/SCN/PerSubject/subject{subject_id}')
+        #model.save(f'../saved_trained_models/SCN/PerSubject/subject{subject_id}')
 
         label_encoder = LabelEncoder()
         test_labels = label_encoder.fit_transform(y_test)
