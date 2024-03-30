@@ -43,14 +43,14 @@ def ShallowConvNet(nb_classes, Chans=64, Samples=128, dropoutRate=0.5):
 
     # start the model
     input_main = Input((Chans, Samples, 1))
-    block1 = Conv2D(40, (1, 13),
+    block1 = Conv2D(40, (1, 25),        #since sampling rate is 250 i use 25 instead of 13
                     input_shape=(Chans, Samples, 1),
                     kernel_constraint=max_norm(2., axis=(0, 1, 2)))(input_main)
     block1 = Conv2D(40, (Chans, 1), use_bias=False,
                     kernel_constraint=max_norm(2., axis=(0, 1, 2)))(block1)
     block1 = BatchNormalization(epsilon=1e-05, momentum=0.9)(block1)
     block1 = Activation(square)(block1)
-    block1 = AveragePooling2D(pool_size=(1, 35), strides=(1, 7))(block1)
+    block1 = AveragePooling2D(pool_size=(1, 75), strides=(1, 15))(block1)        #bigger pool size and strides because higher sampling rate
     block1 = Activation(log)(block1)
     block1 = Dropout(dropoutRate)(block1)
     flatten = Flatten()(block1)
