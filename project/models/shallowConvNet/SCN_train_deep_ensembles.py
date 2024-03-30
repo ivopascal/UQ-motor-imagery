@@ -76,6 +76,8 @@ def main():
         y_categorical = np_utils.to_categorical(y_integers, num_classes=num_unique_labels)
 
         predictions = np.zeros((num_models, X_test.shape[0], len(np.unique(y))))
+        #models = []
+
         for model_idx in tqdm(range(num_models)):
 
             # make a model for every individual subject
@@ -83,7 +85,7 @@ def main():
             optimizer = Adam(learning_rate=0.001)  # standard 0.001
             model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
-            weights = compute_sample_weight('balanced', y=y_train)
+            #weights = compute_sample_weight('balanced', y=y_train)
 
             model.fit(
                 X_train,
@@ -94,25 +96,22 @@ def main():
             )
 
             predictions[model_idx] = model.predict(X_test)
+            #models.append(model)
 
-        # predictions = model.predict(X_test)
-        # predicted_classes = np.argmax(predictions, axis=1)
+        #predictions = [model.predict(X_test) for model in models]
+
+        mean_predictions = np.mean(predictions, axis=0)
+        y_pred = np.argmax(mean_predictions, axis=1)
+
+        uncertainty = np.var(predictions, axis=0)
 
         label_encoder = LabelEncoder()
         test_labels = label_encoder.fit_transform(y_test)
 
-        mean_predictions = np.mean(predictions, axis=0)
-        uncertainty = np.var(predictions, axis=0)
-
-        y_pred = np.argmax(mean_predictions, axis=1)
-        # accuracy = accuracy_score(y_test, y_pred)
-        # print(f"Test accuracy for subject {subject_id}: {accuracy}")
-        # print(f"Prediction uncertainty: {np.mean(uncertainty)}")
-
         # Calculate and print the accuracy
-        #accuracy = accuracy_score(test_labels, predicted_classes)
-        #print(f"Test accuracy for subject {subject_id}: {accuracy}")
-        print(f"Prediction uncertainty: {np.mean(uncertainty)}")
+        accuracy = accuracy_score(test_labels, y_pred)
+        print(f"Test accuracy for subject {subject_id}: {accuracy}")
+        print(f"Prediction uncertainty: {np.mean(uncertainty)}")        #ommit mean when wanting uncertainties for all predictions
 
         evaluate_model(y_pred, test_labels, subject_id)
 
