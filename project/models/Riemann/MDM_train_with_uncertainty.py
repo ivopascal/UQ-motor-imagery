@@ -11,7 +11,7 @@ import seaborn as sns
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import compute_class_weight, compute_sample_weight
 
-from project.models.Riemann.MDM_model import MDM  # this is same to pyriemann
+from project.models.Riemann.MDM_model_with_uncertainty import MDM  # this is same to pyriemann
 from project.preprocessing.load_datafiles import read_data_moabb
 import warnings
 
@@ -65,14 +65,20 @@ def main():
         # Predict the labels for the test set
         y_pred = model.predict(X_test)
 
-        # Calculate and print the accuracy
-        accuracy = accuracy_score(y_test, y_pred)
-        print(f"Test accuracy for subject {subject_id}: {accuracy}")
+        # # Calculate and print the accuracy
+        # accuracy = accuracy_score(y_test, y_pred)
+        # print(f"Test accuracy for subject {subject_id}: {accuracy}")
+        #
+        # # y_probabilities = model.predict_proba(X_cov)
+        # # print("Probabilities: ", y_probabilities)
+        #
+        # evaluate_model(y_pred, y_test, subject_id)
 
-        # y_probabilities = model.predict_proba(X_cov)
-        # print("Probabilities: ", y_probabilities)
-
-        evaluate_model(y_pred, y_test, subject_id)
+        # Then in your main function or wherever you make predictions:
+        # Assuming you have an MDM instance `model` and test set `X_test`
+        predictions, uncertainty = model.predict_with_uncertainty(X_test)
+        print(f"Predictions: {predictions}")
+        print(f"Uncertainty: {uncertainty}")
 
 
 
