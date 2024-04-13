@@ -83,9 +83,10 @@ def main():
         y_integers = label_encoder.fit_transform(y_train)
         y_categorical = np_utils.to_categorical(y_integers, num_classes=num_unique_labels)
 
-        predictions = np.zeros((num_models, X_test.shape[0], len(np.unique(y))))
+        model1_pred = []
+        model2_pred = []
 
-        for model_idx in tqdm(range(num_models)):
+        for model_idx in tqdm(range(1, num_models + 1)):
 
             model = ShallowConvNet(nb_classes=4, Chans=22, Samples=1001, dropoutRate=0.5)
             optimizer = Adam(learning_rate=0.001)  # standard 0.001
@@ -101,15 +102,15 @@ def main():
             )
             #print("model idx: ", model_idx)
 
-            predictions[model_idx] = model.predict(X_test)
+            if(model_idx == 1):
+                model1_pred.append(model.predict(X_test))
+            elif(model_idx == 2):
+                model2_pred.append((model.predict(X_test)))
 
-        mean_predictions = np.mean(np.array([predictions]), axis=0)
-        print("mean pred: ", mean_predictions)
+        mean_predictions = np.mean(np.array([model1_pred, model2_pred]), axis=0)
 
         max_pred_0 = np.max(mean_predictions, axis=0)
-        print("Max pred: ", max_pred_0)
         y_pred = max_pred_0.argmax(axis=1)
-        print("Y pred: ", y_pred)
 
         max_pred_further = np.max(max_pred_0, axis=1)
         print("The confidence per prediction: ", max_pred_further)
