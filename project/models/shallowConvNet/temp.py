@@ -6,6 +6,7 @@ from moabb.paradigms import MotorImagery
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.utils import compute_sample_weight
+from tqdm import tqdm
 
 from project.models.shallowConvNet.SCNmodel import ShallowConvNet
 
@@ -55,6 +56,8 @@ def main():
     )
 
     num_subjects = 9
+    num_models = 5
+
     for subject_id in range(1, num_subjects + 1):
         subject = [subject_id]
 
@@ -72,41 +75,54 @@ def main():
         y_integers = label_encoder.fit_transform(y_train)
         y_categorical = np_utils.to_categorical(y_integers, num_classes=num_unique_labels)
 
-        # make a model for every individual subject
-        model = ShallowConvNet(nb_classes=4, Chans=22, Samples=1001, dropoutRate=0.5)
-        optimizer = Adam(learning_rate=0.001)  # standard 0.001
-        model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
+        predictions = np.zeros((num_models, X_test.shape[0], len(np.unique(y))))
+        #models = []
 
-        weights = compute_sample_weight('balanced', y=y_train)
+        for model_idx in tqdm(range(num_models)):
 
-        model.fit(
-            X_train,
-            y_categorical,
-            callbacks=[early_stopping],
-            epochs=100, batch_size=64, validation_split=0.1 #, sample_weight=weights
-            ,verbose=0,
-        )
+            # make a model for every individual subject
+            model = ShallowConvNet(nb_classes=4, Chans=22, Samples=1001, dropoutRate=0.5)
+            optimizer = Adam(learning_rate=0.001)  # standard 0.001
+            model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
-        #model.save(f'../saved_trained_models/SCN/PerSubject/subject{subject_id}')
+            #weights = compute_sample_weight('balanced', y=y_train)
+
+            model.fit(
+                X_train,
+                y_categorical,
+                callbacks=[early_stopping],
+                epochs=100, batch_size=64, validation_split=0.1 #, sample_weight=weights
+                ,verbose=0,
+            )
+
+            predictions[model_idx] = model.predict(X_test)
+            #models.append(model)
+
+        #predictions = [model.predict(X_test) for model in models]
+
+        mean_predictions = np.mean(predictions, axis=1)
+
+        print("Mean predictions", mean_predictions)
+
+        y_pred = np.argmax(mean_predictions, axis=1)
+
+        print("prediction is: ", y_pred)
+
+        #uncertainty = np.var(predictions, axis=0)
+        uncertainty = mean_predictions
+        #uncertainty = np.std(predictions, axis=0)
+
+        print("Uncertainty", uncertainty)
 
         label_encoder = LabelEncoder()
         test_labels = label_encoder.fit_transform(y_test)
 
-        predictions = model.predict(X_test)
+        # Calculate and print the accuracy
+        accuracy = accuracy_score(test_labels, y_pred)
+        print(f"Test accuracy for subject {subject_id}: {accuracy}")
+        print(f"Prediction uncertainty: {np.mean(uncertainty)}")        #ommit mean when wanting uncertainties for all predictions
 
-        print("Predictions: ", predictions)
-        print("Pred axis 0 mean: ", np.mean(predictions, axis=0))
-        print("Pred axis 1 mean: ", np.mean(predictions, axis=1))
-
-
-        predicted_classes = np.argmax(predictions, axis=1)
-
-        # # Calculate and print the accuracy
-        # accuracy = accuracy_score(test_labels, predicted_classes)
-        # print(f"Test accuracy for subject {subject_id}: {accuracy}")
-
-        evaluate_model(predicted_classes, test_labels, subject_id)
-
+        #evaluate_model(y_pred, test_labels, subject_id)
 
 
 

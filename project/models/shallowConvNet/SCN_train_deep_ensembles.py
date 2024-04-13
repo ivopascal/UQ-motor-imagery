@@ -42,6 +42,14 @@ def evaluate_model(y_pred, y_true, subject_id):
     plt.show()
 
 
+def predict_ensemble(models, X_input):
+    softmax_outputs = [model.predict(X_input) for model in models]  # List of softmax outputs from each model
+    mean_softmax = np.mean(softmax_outputs, axis=0)  # Average across the model outputs
+    predicted_class = np.max(mean_softmax)  # Class with highest average probability
+    #uncertainty = entropy(mean_softmax)  # Entropy as uncertainty measure
+    return predicted_class, mean_softmax  #, uncertainty
+
+
 def main():
     dataset = BNCI2014_001()
     paradigm = MotorImagery(
@@ -56,7 +64,7 @@ def main():
     )
 
     num_subjects = 9
-    num_models = 5
+    num_models = 2
 
     for subject_id in range(1, num_subjects + 1):
         subject = [subject_id]
@@ -75,12 +83,12 @@ def main():
         y_integers = label_encoder.fit_transform(y_train)
         y_categorical = np_utils.to_categorical(y_integers, num_classes=num_unique_labels)
 
-        predictions = np.zeros((num_models, X_test.shape[0], len(np.unique(y))))
-        #models = []
+        model1_pred = []
+        model2_pred = []
 
-        for model_idx in tqdm(range(num_models)):
 
-            # make a model for every individual subject
+        for model_idx in tqdm(range(1, num_models + 1)):
+
             model = ShallowConvNet(nb_classes=4, Chans=22, Samples=1001, dropoutRate=0.5)
             optimizer = Adam(learning_rate=0.001)  # standard 0.001
             model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
@@ -94,27 +102,45 @@ def main():
                 epochs=100, batch_size=64, validation_split=0.1 #, sample_weight=weights
                 ,verbose=0,
             )
+            print("model idx: ", model_idx)
 
-            predictions[model_idx] = model.predict(X_test)
-            #models.append(model)
+            if(model_idx == 1):
+                model1_pred.append(model.predict(X_test))
+                #print("Model 1 pred:", model1_pred)
+            elif(model_idx == 2):
+                model2_pred.append((model.predict(X_test)))
+                #print("Model 2 pred:", model2_pred)
 
-        #predictions = [model.predict(X_test) for model in models]
+        #mean_pred = np.mean(np.array([model1_pred, model2_pred]), axis=0)
+        mean_pred = (np.array(model1_pred) + np.array(model2_pred)) / 2.0
 
-        mean_predictions = np.mean(predictions, axis=0)
-        y_pred = np.argmax(mean_predictions, axis=1)
+        print("Mean pred: ", mean_pred)
 
-        #uncertainty = np.var(predictions, axis=0)
-        uncertainty = mean_predictions
+        # mean_of_mean_pred_0 = np.mean(mean_pred, axis=0)        #
+        # print("Mean of mean pred 0: ", mean_of_mean_pred_0)
+        #
+        # mean_of_mean_pred_1 = np.mean(mean_pred, axis=1)
+        # print("Mean of mean pred 1: ", mean_of_mean_pred_1)
 
-        label_encoder = LabelEncoder()
-        test_labels = label_encoder.fit_transform(y_test)
+        max_pred_0 = np.max(mean_pred, axis=1)
+        print("Max pred 0: ", max_pred_0)
 
-        # Calculate and print the accuracy
-        accuracy = accuracy_score(test_labels, y_pred)
-        print(f"Test accuracy for subject {subject_id}: {accuracy}")
-        print(f"Prediction uncertainty: {np.mean(uncertainty)}")        #ommit mean when wanting uncertainties for all predictions
+        max_pred_1 = np.max(mean_pred, axis=1)
+        print("Max pred 1: ", max_pred_1)
 
-        evaluate_model(y_pred, test_labels, subject_id)
+        overall_certainty = np.mean(max_pred_1)
+        print("overall uncertainty: ", overall_certainty)
+
+
+        # predicted_class, mean_probabilities = predict_ensemble(models, X_test)
+        # print("predicted class: ", predicted_class)
+        # print("mean prob: ", mean_probabilities)
+
+        # model_predictions.append([model.predict(X_test) for model in models])
+        # ensemble_predictions = np.mean(np.array(model_predictions), axis=1)  # Averaging across models
+        #
+        # print("ensemble pred: ", ensemble_predictions)
+
 
 
 
