@@ -86,7 +86,6 @@ def main():
         model1_pred = []
         model2_pred = []
 
-
         for model_idx in tqdm(range(1, num_models + 1)):
 
             model = ShallowConvNet(nb_classes=4, Chans=22, Samples=1001, dropoutRate=0.5)
@@ -94,7 +93,6 @@ def main():
             model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
             #weights = compute_sample_weight('balanced', y=y_train)
-
             model.fit(
                 X_train,
                 y_categorical,
@@ -102,7 +100,7 @@ def main():
                 epochs=100, batch_size=64, validation_split=0.1 #, sample_weight=weights
                 ,verbose=0,
             )
-            print("model idx: ", model_idx)
+            #print("model idx: ", model_idx)
 
             if(model_idx == 1):
                 model1_pred.append(model.predict(X_test))
@@ -111,35 +109,18 @@ def main():
                 model2_pred.append((model.predict(X_test)))
                 #print("Model 2 pred:", model2_pred)
 
-        #mean_pred = np.mean(np.array([model1_pred, model2_pred]), axis=0)
-        mean_pred = (np.array(model1_pred) + np.array(model2_pred)) / 2.0
+        mean_pred = np.mean(np.array([model1_pred, model2_pred]), axis=0)
+        #mean_pred = (np.array(model1_pred) + np.array(model2_pred)) / 2.0
 
-        print("Mean pred: ", mean_pred)
+        max_pred_0 = np.max(mean_pred, axis=0)
 
-        # mean_of_mean_pred_0 = np.mean(mean_pred, axis=0)        #
-        # print("Mean of mean pred 0: ", mean_of_mean_pred_0)
-        #
-        # mean_of_mean_pred_1 = np.mean(mean_pred, axis=1)
-        # print("Mean of mean pred 1: ", mean_of_mean_pred_1)
+        max_pred_further = np.max(max_pred_0, axis=1)
+        print("The confidence per prediction: ", max_pred_further)
 
-        max_pred_0 = np.max(mean_pred, axis=1)
-        print("Max pred 0: ", max_pred_0)
+        overall_confidence = np.mean(max_pred_further)
+        print("overall confidence: ", overall_confidence)
 
-        max_pred_1 = np.max(mean_pred, axis=1)
-        print("Max pred 1: ", max_pred_1)
-
-        overall_certainty = np.mean(max_pred_1)
-        print("overall uncertainty: ", overall_certainty)
-
-
-        # predicted_class, mean_probabilities = predict_ensemble(models, X_test)
-        # print("predicted class: ", predicted_class)
-        # print("mean prob: ", mean_probabilities)
-
-        # model_predictions.append([model.predict(X_test) for model in models])
-        # ensemble_predictions = np.mean(np.array(model_predictions), axis=1)  # Averaging across models
-        #
-        # print("ensemble pred: ", ensemble_predictions)
+        
 
 
 
