@@ -97,22 +97,20 @@ def main():
                 X_train,
                 y_categorical,
                 callbacks=[early_stopping],
-                epochs=100, batch_size=64, validation_split=0.1 #, sample_weight=weights
-                ,verbose=0,
+                epochs=100, batch_size=64, validation_split=0.1, # sample_weight=weights,
+                verbose=0,
             )
             #print("model idx: ", model_idx)
 
             if(model_idx == 1):
                 model1_pred.append(model.predict(X_test))
-                #print("Model 1 pred:", model1_pred)
             elif(model_idx == 2):
                 model2_pred.append((model.predict(X_test)))
-                #print("Model 2 pred:", model2_pred)
 
-        mean_pred = np.mean(np.array([model1_pred, model2_pred]), axis=0)
-        #mean_pred = (np.array(model1_pred) + np.array(model2_pred)) / 2.0
+        mean_predictions = np.mean(np.array([model1_pred, model2_pred]), axis=0)
 
-        max_pred_0 = np.max(mean_pred, axis=0)
+        max_pred_0 = np.max(mean_predictions, axis=0)
+        y_pred = max_pred_0.argmax(axis=1)
 
         max_pred_further = np.max(max_pred_0, axis=1)
         print("The confidence per prediction: ", max_pred_further)
@@ -120,7 +118,15 @@ def main():
         overall_confidence = np.mean(max_pred_further)
         print("overall confidence: ", overall_confidence)
 
-        
+        label_encoder = LabelEncoder()
+        test_labels = label_encoder.fit_transform(y_test)
+
+        # Calculate and print the accuracy
+        accuracy = accuracy_score(test_labels, y_pred)
+        print(f"Test accuracy for subject {subject_id}: {accuracy}")
+        print(f"Prediction confidence: {np.mean(overall_confidence)}")  # take max_pred_further when wanting confidence per prediction
+
+        evaluate_model(y_pred, test_labels, subject_id)
 
 
 
