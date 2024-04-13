@@ -103,7 +103,8 @@ def main():
         mean_predictions = np.mean(predictions, axis=0)
         y_pred = np.argmax(mean_predictions, axis=1)
 
-        uncertainty = np.var(predictions, axis=0)
+        #uncertainty = np.var(predictions, axis=0)
+        uncertainty = mean_predictions
 
         label_encoder = LabelEncoder()
         test_labels = label_encoder.fit_transform(y_test)
