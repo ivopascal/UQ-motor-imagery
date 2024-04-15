@@ -76,9 +76,22 @@ def main():
 
         # Then in your main function or wherever you make predictions:
         # Assuming you have an MDM instance `model` and test set `X_test`
-        predictions, uncertainty = model.predict_with_uncertainty(X_test)
-        print(f"Predictions: {predictions}")
-        print(f"Uncertainty: {uncertainty}")
+
+        #predictions, uncertainty = model.predict_with_uncertainty(X_test)
+
+        prediction_proba = model.predict_proba(X_test)
+
+        confidence = np.max(prediction_proba, axis=1)
+
+        print(f"Predictions: {y_pred}")
+        print(f"Confidence: {confidence}")
+
+        overall_confidence = np.mean(confidence)
+
+        print(f"Overall Confidence: {overall_confidence}")
+
+        accuracy = accuracy_score(y_test, y_pred)
+        print(f"Test accuracy for subject {subject_id}: {accuracy}")
 
 
 
