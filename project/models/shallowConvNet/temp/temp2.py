@@ -6,6 +6,7 @@ from moabb.paradigms import MotorImagery
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.utils import compute_sample_weight
+from tqdm import tqdm
 
 from project.models.shallowConvNet.SCNmodel import ShallowConvNet
 
@@ -41,6 +42,14 @@ def evaluate_model(y_pred, y_true, subject_id):
     plt.show()
 
 
+def predict_ensemble(models, X_input):
+    softmax_outputs = [model.predict(X_input) for model in models]  # List of softmax outputs from each model
+    mean_softmax = np.mean(softmax_outputs, axis=0)  # Average across the model outputs
+    predicted_class = np.max(mean_softmax)  # Class with highest average probability
+    #uncertainty = entropy(mean_softmax)  # Entropy as uncertainty measure
+    return predicted_class, mean_softmax  #, uncertainty
+
+
 def main():
     dataset = BNCI2014_001()
     paradigm = MotorImagery(
@@ -55,6 +64,8 @@ def main():
     )
 
     num_subjects = 9
+    num_models = 2
+
     for subject_id in range(1, num_subjects + 1):
         subject = [subject_id]
 
@@ -72,40 +83,50 @@ def main():
         y_integers = label_encoder.fit_transform(y_train)
         y_categorical = np_utils.to_categorical(y_integers, num_classes=num_unique_labels)
 
-        # make a model for every individual subject
-        model = ShallowConvNet(nb_classes=4, Chans=22, Samples=1001, dropoutRate=0.5)
-        optimizer = Adam(learning_rate=0.001)  # standard 0.001
-        model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
+        model1_pred = []
+        model2_pred = []
 
-        weights = compute_sample_weight('balanced', y=y_train)
+        for model_idx in tqdm(range(1, num_models + 1)):
 
-        model.fit(
-            X_train,
-            y_categorical,
-            callbacks=[early_stopping],
-            epochs=100, batch_size=64, validation_split=0.1 #, sample_weight=weights
-            ,verbose=0,
-        )
+            model = ShallowConvNet(nb_classes=4, Chans=22, Samples=1001, dropoutRate=0.5)
+            optimizer = Adam(learning_rate=0.001)  # standard 0.001
+            model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
-        #model.save(f'../saved_trained_models/SCN/PerSubject/subject{subject_id}')
+            #weights = compute_sample_weight('balanced', y=y_train)
+            model.fit(
+                X_train,
+                y_categorical,
+                callbacks=[early_stopping],
+                epochs=100, batch_size=64, validation_split=0.1, # sample_weight=weights,
+                verbose=0,
+            )
+            #print("model idx: ", model_idx)
+
+            if(model_idx == 1):
+                model1_pred.append(model.predict(X_test))
+            elif(model_idx == 2):
+                model2_pred.append((model.predict(X_test)))
+
+        mean_predictions = np.mean(np.array([model1_pred, model2_pred]), axis=0)
+
+        max_pred_0 = np.max(mean_predictions, axis=0)
+        y_pred = max_pred_0.argmax(axis=1)
+
+        max_pred_further = np.max(max_pred_0, axis=1)
+        print("The confidence per prediction: ", max_pred_further)
+
+        overall_confidence = np.mean(max_pred_further)
+        print("overall confidence: ", overall_confidence)
 
         label_encoder = LabelEncoder()
         test_labels = label_encoder.fit_transform(y_test)
 
-        predictions = model.predict(X_test)
+        # Calculate and print the accuracy
+        accuracy = accuracy_score(test_labels, y_pred)
+        print(f"Test accuracy for subject {subject_id}: {accuracy}")
+        print(f"Prediction confidence: {np.mean(overall_confidence)}")  # take max_pred_further when wanting confidence per prediction
 
-        print("Predictions: ", predictions)
-        print("Pred axis 0 mean: ", np.mean(predictions, axis=0))
-        print("Pred axis 1 mean: ", np.mean(predictions, axis=1))
-
-
-        predicted_classes = np.argmax(predictions, axis=1)
-
-        # # Calculate and print the accuracy
-        # accuracy = accuracy_score(test_labels, predicted_classes)
-        # print(f"Test accuracy for subject {subject_id}: {accuracy}")
-
-        evaluate_model(predicted_classes, test_labels, subject_id)
+        evaluate_model(y_pred, test_labels, subject_id)
 
 
 
