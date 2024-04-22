@@ -70,9 +70,12 @@ def main():
         y_categorical = np_utils.to_categorical(y_integers, num_classes=num_unique_labels)
 
         # make a model for every individual subject
-        model = ShallowConvNet(nb_classes=4, Chans=22, Samples=1001, dropoutRate=0.5)
-        optimizer = Adam(learning_rate=0.001)  # standard 0.001
-        model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
+        # model = ShallowConvNet(nb_classes=4, Chans=22, Samples=1001, dropoutRate=0.5)
+        # optimizer = Adam(learning_rate=0.001)  # standard 0.001
+        # model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
+
+        model = ShallowConvNet()
+        model = model.build()
 
         weights = compute_sample_weight('balanced', y=y_train)
 
@@ -84,9 +87,6 @@ def main():
             ,verbose=0,
         )
 
-        # Het kan zijn dat ik de training loop van keras uncertainty hier beter kan pakken, dat is
-        # duq_training_loop
-
         # model.save(f'../saved_trained_models/SCN/PerSubject/subject{subject_id}')
 
         label_encoder = LabelEncoder()
@@ -95,13 +95,6 @@ def main():
         predictions = model.predict(X_test)
 
         predicted_classes = np.argmax(predictions, axis=1)
-
-        confidence = np.max(predicted_classes, axis=0)
-        print("Confidence: ", confidence)
-
-        # # Calculate and print the accuracy
-        # accuracy = accuracy_score(test_labels, predicted_classes)
-        # print(f"Test accuracy for subject {subject_id}: {accuracy}")
 
         evaluate_model(predicted_classes, test_labels, subject_id)
 
