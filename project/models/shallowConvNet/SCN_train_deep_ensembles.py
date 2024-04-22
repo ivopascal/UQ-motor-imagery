@@ -5,18 +5,14 @@ from moabb.datasets import BNCI2014_001
 from moabb.paradigms import MotorImagery
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 from sklearn.model_selection import train_test_split
-from sklearn.utils import compute_sample_weight
 from tqdm import tqdm
 
 from project.models.shallowConvNet.SCNmodel import ShallowConvNet
 
-from project.preprocessing.load_datafiles import read_data_moabb
 from keras.utils import np_utils
 
 from sklearn.preprocessing import LabelEncoder
 import numpy as np
-
-from project.preprocessing.load_datafiles_traintest import read_data_traintest
 
 import seaborn as sns
 
