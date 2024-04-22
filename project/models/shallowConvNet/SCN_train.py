@@ -9,13 +9,10 @@ from sklearn.utils import compute_sample_weight
 
 from project.models.shallowConvNet.SCNmodel import ShallowConvNet
 
-from project.preprocessing.load_datafiles import read_data_moabb
 from keras.utils import np_utils
 
 from sklearn.preprocessing import LabelEncoder
 import numpy as np
-
-from project.preprocessing.load_datafiles_traintest import read_data_traintest
 
 import seaborn as sns
 

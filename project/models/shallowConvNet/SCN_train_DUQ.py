@@ -7,15 +7,12 @@ from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.utils import compute_sample_weight
 
-from project.models.shallowConvNet.SCNmodel import ShallowConvNet
+from project.models.shallowConvNet.SCN_model_DUQ import ShallowConvNet
 
-from project.preprocessing.load_datafiles import read_data_moabb
 from keras.utils import np_utils
 
 from sklearn.preprocessing import LabelEncoder
 import numpy as np
-
-from project.preprocessing.load_datafiles_traintest import read_data_traintest
 
 import seaborn as sns
 
@@ -87,7 +84,10 @@ def main():
             ,verbose=0,
         )
 
-        #model.save(f'../saved_trained_models/SCN/PerSubject/subject{subject_id}')
+        # Het kan zijn dat ik de training loop van keras uncertainty hier beter kan pakken, dat is
+        # duq_training_loop
+
+        # model.save(f'../saved_trained_models/SCN/PerSubject/subject{subject_id}')
 
         label_encoder = LabelEncoder()
         test_labels = label_encoder.fit_transform(y_test)
@@ -95,6 +95,9 @@ def main():
         predictions = model.predict(X_test)
 
         predicted_classes = np.argmax(predictions, axis=1)
+
+        confidence = np.max(predicted_classes, axis=0)
+        print("Confidence: ", confidence)
 
         # # Calculate and print the accuracy
         # accuracy = accuracy_score(test_labels, predicted_classes)
