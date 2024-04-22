@@ -83,15 +83,17 @@ def main():
 
         confidence = np.max(prediction_proba, axis=1)
 
-        print(f"Predictions: {y_pred}")
-        print(f"Confidence: {confidence}")
+        #print(f"Predictions: {y_pred}")
+        #print(f"Confidence: {confidence}")
 
         overall_confidence = np.mean(confidence)
 
         print(f"Overall Confidence: {overall_confidence}")
 
         accuracy = accuracy_score(y_test, y_pred)
-        print(f"Test accuracy for subject {subject_id}: {accuracy}")
+        #print(f"Test accuracy for subject {subject_id}: {accuracy}")
+
+        evaluate_model(y_pred, y_test, subject_id)
 
 
 
