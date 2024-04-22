@@ -1,5 +1,5 @@
 from keras_uncertainty.layers import RBFClassifier, FlipoutDense
-from keras_uncertainty.layers import add_l2_regularization
+#from keras_uncertainty.layers import add_l2_regularization
 from keras.constraints import max_norm
 import keras
 import keras.layers
@@ -8,6 +8,17 @@ from keras.layers import Conv2D, BatchNormalization, Activation, AveragePooling2
 from keras.models import Sequential
 from keras.optimizers import Adam
 from keras.backend import log, square, clip
+
+from keras.regularizers import l2
+
+
+def add_l2_regularization(model, l2_strength=1e-4):
+    for layer in model.layers:
+        if layer.trainable_weights:
+            # Wrap the regularization inside a lambda to ensure it's callable
+            layer_loss = lambda: l2(l2_strength)(layer.trainable_weights[0])
+            model.add_loss(layer_loss)
+
 
 class BaseConvModel:
     def __init__(self, hp=None, C=22, T=1125, f=40,
@@ -78,35 +89,37 @@ class BaseConvModel:
         return model
 
     def get_model(self):
-        return self.build()
+        return self.build(None)
 
 
 class SCN_DUQ(BaseConvModel):
-    def __init__(self, hp=None, C=22, T=1125, f=40,
+    def __init__(self, hp=None, C=22, T=1001, f=40,
                  k1=(1, 25), fp=(1, 75), sp=(1, 15),
                  Nc=4):
         super().__init__(hp, C, T, f, k1, fp, sp, Nc)
 
     def add_dense(self, model):
-        model.add(keras.layers.Dense(100),
-                                     activation='relu', kernel_constraint=max_norm(0.5))
+        model.add(keras.layers.Dense(100, activation='relu', kernel_constraint=max_norm(0.5)))
         return model
 
     def add_rbf_layer(self, model):
-        centr_dims = self.hp.Choice('centroid_dims', [2, 5, 25, 100])
-        length_scale = self.hp.Choice('length_scale', [0.1, 0.2, 0.3, 0.4, 0.5])
-        train_centroids = self.hp.Choice('train_centroids', [False, True])
+        centr_dims = 2
+        length_scale = 0.1
+        train_centroids = False
         model.add(RBFClassifier(self.Nc, length_scale, centroid_dims=centr_dims, trainable_centroids=train_centroids))
         return model
 
-    def build(self):
+    def build(self, hp):
+        self.hp = hp
         model = keras.models.Sequential()
         model = self.add_conv_filters(model)
         model = self.add_batch_norm(model)
         model = self.add_pooling(model)
         model = self.flatten(model)
         model = self.add_dense(model)
+        #model.add(Activation('softmax'))
         model = self.add_rbf_layer(model)
         model = self.compile_model(model, loss='binary_crossentropy', metrics=["categorical_accuracy"])
         add_l2_regularization(model)
         return model
+

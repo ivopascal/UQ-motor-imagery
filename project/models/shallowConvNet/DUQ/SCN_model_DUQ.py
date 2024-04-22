@@ -87,11 +87,11 @@ class ShallowConvNet:
         model.add(Dropout(dropoutRate))
 
         model.add(Flatten())
-        model.add(Dense(100, kernel_constraint=max_norm(0.5)))       # 100 was nb_classes
+        model.add(Dense(nb_classes, kernel_constraint=max_norm(0.5)))       # 100 was nb_classes
 
-        model.add(RBFClassifier(nb_classes, length_scale=0.1))
+        model.add(RBFClassifier(nb_classes, length_scale=0.2))
 
-        #model.add(Activation('softmax'))
+        # model.add(Activation('softmax'))
 
         optimizer = Adam(learning_rate=0.001)  # standard 0.001
 

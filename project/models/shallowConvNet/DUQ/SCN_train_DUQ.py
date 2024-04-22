@@ -20,6 +20,8 @@ import warnings
 
 warnings.filterwarnings('ignore', category=FutureWarning)
 
+import model_DUQ_SCN
+
 
 def evaluate_model(y_pred, y_true, subject_id):
     subject_id = subject_id
@@ -77,6 +79,10 @@ def main():
         model = ShallowConvNet()
         model = model.build()
 
+        # base = model_DUQ_SCN.BaseConvModel()
+        # model1 = model_DUQ_SCN.SCN_DUQ(base)
+        # model = model1.build(None)
+
         weights = compute_sample_weight('balanced', y=y_train)
 
         model.fit(
@@ -84,7 +90,7 @@ def main():
             y_categorical,
             callbacks=[early_stopping],
             epochs=100, batch_size=64, validation_split=0.1 #, sample_weight=weights
-            ,verbose=0,
+            ,verbose=1,
         )
 
         # model.save(f'../saved_trained_models/SCN/PerSubject/subject{subject_id}')
@@ -94,7 +100,13 @@ def main():
 
         predictions = model.predict(X_test)
 
-        predicted_classes = np.argmax(predictions, axis=1)
+        print("Predictions are: ", predictions)
+
+        predicted_classes = np.argmax(predictions, axis=1)      # slides matthias say argmax, not argmin
+
+        print("Predicted classes are: ", predicted_classes)
+
+        # todo kijken wat precies predicted classes teruggeeft
 
         evaluate_model(predicted_classes, test_labels, subject_id)
 
