@@ -18,7 +18,12 @@ import keras_uncertainty.backend
 
 from keras.regularizers import l2
 
+# Ik heb nu de structuur vergelijkbaar gemaakt aan hoe het is gedaan in: https://github.com/p-manivannan/UQ-Motor-Imagery/blob/main/
+# Dit was in de aangeraden paper van Ivo
 
+
+# het was nodig de functie van Matthias aan te passen aangezien er een error was waarin werd aangegeven dat
+# het in een Lambda expression moest zoals hieronder
 def add_l2_regularization(model, l2_strength=1e-4):
     for layer in model.layers:
         if layer.trainable_weights:
@@ -63,7 +68,7 @@ class ShallowConvNet:
 
     def build(self):
 
-        nb_classes = 4
+        nb_classes = 4      # This way is easier for now in the testing of DUQ phase
         Chans = 22
         Samples = 1001
         dropoutRate = 0.5
@@ -74,9 +79,13 @@ class ShallowConvNet:
 
         model.add(Conv2D(40, (1, 25),        #since sampling rate is 250 i use 25 instead of 13
                         input_shape=(Chans, Samples, 1),
-                        kernel_constraint=max_norm(2., axis=(0, 1, 2))))
+                        kernel_constraint=max_norm(2., axis=(0, 1, 2)),
+                        # activation='linear', padding="SAME"       # This was used in the paper from Ivo
+                         ))
         model.add(Conv2D(40, (Chans, 1), use_bias=False,
-                         kernel_constraint=max_norm(2., axis=(0, 1, 2))))
+                         # activation='linear', padding="SAME",
+                         kernel_constraint=max_norm(2., axis=(0, 1, 2))
+                         ))
 
         model.add(BatchNormalization(epsilon=1e-05, momentum=0.9))
         model.add(Activation(square))
@@ -87,13 +96,13 @@ class ShallowConvNet:
         model.add(Dropout(dropoutRate))
 
         model.add(Flatten())
-        model.add(Dense(nb_classes, kernel_constraint=max_norm(0.5)))       # 100 was nb_classes
+        model.add(Dense(nb_classes, kernel_constraint=max_norm(0.5)))       # 100 was nb_classes, activation='relu'
 
         model.add(RBFClassifier(nb_classes, length_scale=0.2))
 
-        # model.add(Activation('softmax'))
+        # model.add(Activation('softmax'))      # Not used for DUQ now
 
-        optimizer = Adam(learning_rate=0.001)  # standard 0.001
+        optimizer = Adam(learning_rate=0.01)  # standard 0.001
 
         model.compile(loss="binary_crossentropy",
                       optimizer=optimizer, metrics=["categorical_accuracy"])

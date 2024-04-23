@@ -1,5 +1,4 @@
 from keras.callbacks import EarlyStopping
-from keras.optimizers import Adam
 from matplotlib import pyplot as plt
 from moabb.datasets import BNCI2014_001
 from moabb.paradigms import MotorImagery
@@ -20,8 +19,6 @@ import warnings
 
 warnings.filterwarnings('ignore', category=FutureWarning)
 
-import model_DUQ_SCN
-
 
 def evaluate_model(y_pred, y_true, subject_id):
     subject_id = subject_id
@@ -41,8 +38,8 @@ def evaluate_model(y_pred, y_true, subject_id):
 
 
 def main():
-    dataset = BNCI2014_001()
-    paradigm = MotorImagery(
+    dataset = BNCI2014_001()        # load dataset
+    paradigm = MotorImagery(        # make paradigm, filter between 7.5 and 30 Hz
         n_classes=4, fmin=7.5, fmax=30, tmin=0, tmax=None
     )
 
@@ -54,10 +51,10 @@ def main():
     )
 
     num_subjects = 9
-    for subject_id in range(1, num_subjects + 1):
+    for subject_id in range(1, num_subjects + 1):       # loop to take data and make model per subject
         subject = [subject_id]
 
-        X, y, metadata = paradigm.get_data(dataset=dataset, subjects=subject)
+        X, y, metadata = paradigm.get_data(dataset=dataset, subjects=subject)       # get the data for specific subject
 
         unique_labels = np.unique(y)
         num_unique_labels = len(unique_labels)
@@ -67,11 +64,13 @@ def main():
 
         X_train, X_test, y_train, y_test = train_test_split(X_reshaped, y, test_size=0.2, random_state=42)
 
+        # make the labels categorical
         label_encoder = LabelEncoder()
         y_integers = label_encoder.fit_transform(y_train)
         y_categorical = np_utils.to_categorical(y_integers, num_classes=num_unique_labels)
 
         # make a model for every individual subject
+
         # model = ShallowConvNet(nb_classes=4, Chans=22, Samples=1001, dropoutRate=0.5)
         # optimizer = Adam(learning_rate=0.001)  # standard 0.001
         # model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
@@ -83,18 +82,20 @@ def main():
         # model1 = model_DUQ_SCN.SCN_DUQ(base)
         # model = model1.build(None)
 
-        weights = compute_sample_weight('balanced', y=y_train)
+        # weights = compute_sample_weight('balanced', y=y_train)
 
-        model.fit(
+        model.fit(      # train the model
             X_train,
             y_categorical,
-            callbacks=[early_stopping],
-            epochs=100, batch_size=64, validation_split=0.1 #, sample_weight=weights
+            # callbacks=[early_stopping],
+            epochs=200, batch_size=64, validation_split=0.1 #, sample_weight=weights
             ,verbose=1,
         )
 
         # model.save(f'../saved_trained_models/SCN/PerSubject/subject{subject_id}')
 
+
+        # Now test how good the model performs
         label_encoder = LabelEncoder()
         test_labels = label_encoder.fit_transform(y_test)
 
@@ -102,11 +103,16 @@ def main():
 
         print("Predictions are: ", predictions)
 
-        predicted_classes = np.argmax(predictions, axis=1)      # slides matthias say argmax, not argmin
+        predicted_classes = np.argmax(predictions, axis=1)      # slides matthias: arg max Kc(fθ(x), ec )
 
         print("Predicted classes are: ", predicted_classes)
 
-        # todo kijken wat precies predicted classes teruggeeft
+        # todo uitzoeken waarom sommige predictions 0.000000 zijn, dit gebeurt vrij vaak in de test set,
+        #  bij langer trainen bij subject 1 niet altijd maar 2 wel bijna altijd
+        #  niet echt een lijn in te vinden waarom dit gebeurt
+        #  bij subject 4 was de loss ook aldoor echt 3.5 tot opeens in 2 epochs bij epoch 84 het naar 1.3 ging en vanaf daar daalde
+        #  dus het is echt een beetje apart probleem
+
 
         evaluate_model(predicted_classes, test_labels, subject_id)
 
