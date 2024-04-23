@@ -88,7 +88,7 @@ def main():
         model.fit(      # train the model
             X_train,
             y_categorical,
-            callbacks=[early_stopping],
+            callbacks=[early_stopping],     # early stopping works worse with DUQ, it needs long to train it seems
             epochs=100, batch_size=64, validation_split=0.1 #, sample_weight=weights
             ,verbose=1,
         )
@@ -102,23 +102,26 @@ def main():
 
         predictions = model.predict(X_test)
 
-        #print("Predictions are: ", predictions)
+        print("Predictions are: ", predictions)
 
         predicted_classes = np.argmax(predictions, axis=1)      # slides matthias: arg max Kc(fθ(x), ec )
 
         #print("Predicted classes are: ", predicted_classes)
 
         # confidence = np.max(predictions, axis=1)      # dit werkte prima, maar wel iets anders dan riemann
+        # print("Confidence: ", confidence)
         # overall_confidence = confidence.mean()
-        # print("Confidence: ", overall_confidence)
+        # print("Overall confidence: ", overall_confidence)
 
-        prediction_proba = softmax(predictions ** 2)
+        prediction_proba = softmax((-predictions) ** 2)
+        print("Prediction probabilities: ", prediction_proba)
+
         confidence = np.max(prediction_proba, axis=1)
-
         print("Confidence: ", confidence)
 
         overall_confidence = np.mean(confidence)
         print("Overall Confidence: ", overall_confidence)
+
 
         # todo uitzoeken waarom sommige predictions 0.000000 zijn, dit gebeurt vrij vaak in de test set,
         #  bij langer trainen bij subject 1 niet altijd maar 2 wel bijna altijd

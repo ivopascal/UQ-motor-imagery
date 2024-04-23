@@ -102,7 +102,7 @@ class ShallowConvNet:
 
         # model.add(Activation('softmax'))      # Not used for DUQ now
 
-        optimizer = Adam(learning_rate=0.01)  # standard 0.001
+        optimizer = Adam(learning_rate=0.01)  # standard 0.001      # tweak this better
 
         model.compile(loss="binary_crossentropy",
                       optimizer=optimizer, metrics=["categorical_accuracy"])
