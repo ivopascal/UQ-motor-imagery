@@ -14,6 +14,7 @@ from sklearn.preprocessing import LabelEncoder
 import numpy as np
 
 import seaborn as sns
+from sklearn.utils.extmath import softmax
 
 import warnings
 
@@ -45,7 +46,7 @@ def main():
 
     early_stopping = EarlyStopping(
         monitor='val_loss',
-        patience=7,  # Number of epochs with no improvement
+        patience=10,  # Number of epochs with no improvement
         mode='min',  # Minimize validation loss
         restore_best_weights=True  # Restore model weights from the epoch with the best value of the monitored quantity
     )
@@ -87,8 +88,8 @@ def main():
         model.fit(      # train the model
             X_train,
             y_categorical,
-            # callbacks=[early_stopping],
-            epochs=200, batch_size=64, validation_split=0.1 #, sample_weight=weights
+            callbacks=[early_stopping],
+            epochs=100, batch_size=64, validation_split=0.1 #, sample_weight=weights
             ,verbose=1,
         )
 
@@ -101,17 +102,31 @@ def main():
 
         predictions = model.predict(X_test)
 
-        print("Predictions are: ", predictions)
+        #print("Predictions are: ", predictions)
 
         predicted_classes = np.argmax(predictions, axis=1)      # slides matthias: arg max Kc(fθ(x), ec )
 
-        print("Predicted classes are: ", predicted_classes)
+        #print("Predicted classes are: ", predicted_classes)
+
+        # confidence = np.max(predictions, axis=1)      # dit werkte prima, maar wel iets anders dan riemann
+        # overall_confidence = confidence.mean()
+        # print("Confidence: ", overall_confidence)
+
+        prediction_proba = softmax(predictions ** 2)
+        confidence = np.max(prediction_proba, axis=1)
+
+        print("Confidence: ", confidence)
+
+        overall_confidence = np.mean(confidence)
+        print("Overall Confidence: ", overall_confidence)
 
         # todo uitzoeken waarom sommige predictions 0.000000 zijn, dit gebeurt vrij vaak in de test set,
         #  bij langer trainen bij subject 1 niet altijd maar 2 wel bijna altijd
         #  niet echt een lijn in te vinden waarom dit gebeurt
         #  bij subject 4 was de loss ook aldoor echt 3.5 tot opeens in 2 epochs bij epoch 84 het naar 1.3 ging en vanaf daar daalde
         #  dus het is echt een beetje apart probleem
+
+        #  update lijkt nu opgelost
 
 
         evaluate_model(predicted_classes, test_labels, subject_id)
