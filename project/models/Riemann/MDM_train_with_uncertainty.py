@@ -73,14 +73,18 @@ def main():
         # Then in your main function or wherever you make predictions:
         # Assuming you have an MDM instance `model` and test set `X_test`
 
+        y_distance = model.transform(X_test)
+        print("Y distances: ", y_distance)
+
+
         #predictions, uncertainty = model.predict_with_uncertainty(X_test)
 
         prediction_proba = model.predict_proba(X_test)
 
         confidence = np.max(prediction_proba, axis=1)
 
-        #print(f"Predictions: {y_pred}")
-        #print(f"Confidence: {confidence}")
+        print(f"Predictions proba: {prediction_proba}")
+        print(f"Confidence: {confidence}")
 
         overall_confidence = np.mean(confidence)
 
