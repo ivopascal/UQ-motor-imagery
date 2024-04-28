@@ -10,10 +10,12 @@ from project.models.shallowConvNet.DUQ.SCN_model_DUQ import ShallowConvNet
 
 from keras.utils import np_utils
 
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, normalize
 import numpy as np
 
 import seaborn as sns
+
+# from scipy.special import softmax
 from sklearn.utils.extmath import softmax
 
 import warnings
@@ -91,7 +93,7 @@ def main():
 
         predictions = model.predict(X_test)
 
-        print("Predictions are: ", predictions)
+        # print("Predictions are: ", predictions)
 
         predicted_classes = np.argmax(predictions, axis=1)      # slides matthias: arg max Kc(fθ(x), ec )
 
@@ -103,15 +105,15 @@ def main():
         # overall_confidence = confidence.mean()
         # print("Overall confidence: ", overall_confidence)
 
-        prediction_proba = softmax(-predictions ** 2)
-        print("Prediction probabilities: ", prediction_proba)
-        # this is done the same as with the Riemann model (softmax of negative squared distances.),
-        #    however the probabilities do not really make sense if done this way, so for example :
-        # [6.78250417e-02 6.87640011e-02 4.48920007e-04 9.96227741e-01] these distances would be
-        # [0.29613385 0.29609588 0.2974992  0.1102711 ] these probabilities
+        distances = normalize(predictions, axis=1, norm='l1')
+        # print("Distances: ", distances)
+
+        temperature = 0.3       # This best followed the accuracy and F1 scores
+        prediction_proba = softmax(distances / temperature)
+        # print("Prediction probabilities: ", prediction_proba)
 
         confidence = np.max(prediction_proba, axis=1)
-        print("Confidence: ", confidence)
+        # print("Confidence: ", confidence)
 
         overall_confidence = np.mean(confidence)
         print("Overall Confidence: ", overall_confidence)
