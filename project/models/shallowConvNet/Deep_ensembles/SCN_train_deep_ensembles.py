@@ -38,8 +38,12 @@ def evaluate_model(y_pred, test_labels, subject_id):
     x, y = classifier_calibration_curve(predicted_classes, test_labels, confidence)
     # classifier_accuracy_confidence_curve(predicted_classes, test_labels, confidence)
 
-    plt.plot(x, y, color='red')
-    plt.plot([0, 1], [0, 1], color='black')
+    plt.plot(x, y, color='red', alpha=1, linewidth=2)
+    plt.plot([0, 1], [0, 1], color='black', alpha=0.2)
+    plt.xlabel("Confidence")
+    plt.ylabel("Accuracy")
+    plt.title(f"Confusion Matrix subject {subject_id}")
+    # plt.savefig(f"./graphs/calibration_subject{subject_id}.png")
     plt.show()
 
 
