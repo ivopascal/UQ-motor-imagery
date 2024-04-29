@@ -1,5 +1,6 @@
 from keras.callbacks import EarlyStopping
 from keras.optimizers import Adam
+from keras_uncertainty.utils import classifier_calibration_error, classifier_calibration_curve
 from matplotlib import pyplot as plt
 from moabb.datasets import BNCI2014_001
 from moabb.paradigms import MotorImagery
@@ -11,17 +12,42 @@ from project.models.shallowConvNet.Deep_ensembles.SCNmodel import ShallowConvNet
 
 from keras.utils import np_utils
 
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, normalize
 import numpy as np
 
 import seaborn as sns
+from sklearn.utils.extmath import softmax
 
 import warnings
 
 warnings.filterwarnings('ignore', category=FutureWarning)
 
 
-def evaluate_model(y_pred, y_true, subject_id):
+def evaluate_model(y_pred, test_labels, subject_id):
+    predicted_classes = np.argmax(y_pred, axis=1)
+
+    plot_and_evaluate(predicted_classes, test_labels, subject_id)
+
+    confidence = np.max(y_pred, axis=1)
+    overall_confidence = np.mean(confidence)
+    print("Overall Confidence: ", overall_confidence)
+
+    ece = classifier_calibration_error(predicted_classes, test_labels, confidence)
+    print("ECE: ", ece)
+
+    x, y = classifier_calibration_curve(predicted_classes, test_labels, confidence)
+    # classifier_accuracy_confidence_curve(predicted_classes, test_labels, confidence)
+
+    plt.plot(x, y, color='red', alpha=1, linewidth=2)
+    plt.plot([0, 1], [0, 1], color='black', alpha=0.2)
+    plt.xlabel("Confidence")
+    plt.ylabel("Accuracy")
+    plt.title(f"Confusion Matrix subject {subject_id}")
+    # plt.savefig(f"./graphs/calibration_subject{subject_id}.png")
+    plt.show()
+
+
+def plot_and_evaluate(y_pred, y_true, subject_id):
     subject_id = subject_id
     accuracy = accuracy_score(y_true, y_pred)
     print(f"Subject {subject_id} Validation accuracy: ", accuracy)
@@ -34,17 +60,8 @@ def evaluate_model(y_pred, y_true, subject_id):
     plt.xlabel("Predicted Labels")
     plt.ylabel("True Labels")
     plt.title(f"Confusion Matrix subject {subject_id}")
-    #plt.savefig('confusion.png')
+    # plt.savefig(f"./graphs/confusion_subject{subject_id}.png")
     plt.show()
-
-
-def predict_ensemble(models, X_input):
-    softmax_outputs = [model.predict(X_input) for model in models]  # List of softmax outputs from each model
-    mean_softmax = np.mean(softmax_outputs, axis=0)  # Average across the model outputs
-    predicted_class = np.max(mean_softmax)  # Class with highest average probability
-    #uncertainty = entropy(mean_softmax)  # Entropy as uncertainty measure
-    return predicted_class, mean_softmax  #, uncertainty
-
 
 def main():
     dataset = BNCI2014_001()
@@ -95,33 +112,17 @@ def main():
                 epochs=100, batch_size=64, validation_split=0.1, # sample_weight=weights,
                 verbose=0,
             )
-            #print("model idx: ", model_idx)
 
             predictions[model_idx] = model.predict(X_test)
 
         mean_predictions = np.mean(np.array([predictions]), axis=0)
-        print("mean pred: ", mean_predictions)
 
         max_pred_0 = np.max(mean_predictions, axis=0)
-        print("Max pred: ", max_pred_0)
-        y_pred = max_pred_0.argmax(axis=1)
-        print("Y pred: ", y_pred)
-
-        max_pred_further = np.max(max_pred_0, axis=1)
-        print("The confidence per prediction: ", max_pred_further)
-
-        overall_confidence = np.mean(max_pred_further)
-        print("overall confidence: ", overall_confidence)
 
         label_encoder = LabelEncoder()
         test_labels = label_encoder.fit_transform(y_test)
 
-        # Calculate and print the accuracy
-        accuracy = accuracy_score(test_labels, y_pred)
-        print(f"Test accuracy for subject {subject_id}: {accuracy}")
-        print(f"Prediction confidence: {np.mean(overall_confidence)}")  # take max_pred_further when wanting confidence per prediction
-
-        evaluate_model(y_pred, test_labels, subject_id)
+        evaluate_model(max_pred_0, test_labels, subject_id)
 
 
 
