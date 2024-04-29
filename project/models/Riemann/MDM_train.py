@@ -1,18 +1,13 @@
-import numpy as np
 from matplotlib import pyplot as plt
 from moabb.datasets import BNCI2014_001
-from moabb.evaluations import WithinSessionEvaluation
 from moabb.paradigms import MotorImagery
 from pyriemann.estimation import Covariances
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
-from sklearn.model_selection import train_test_split, cross_val_score, KFold
-from sklearn.pipeline import make_pipeline
+from sklearn.model_selection import train_test_split
 import seaborn as sns
-from sklearn.preprocessing import LabelEncoder
-from sklearn.utils import compute_class_weight, compute_sample_weight
+from sklearn.utils import compute_sample_weight
 
 from project.models.Riemann.MDM_model import MDM  # this is same to pyriemann
-from project.preprocessing.load_datafiles import read_data_moabb
 import warnings
 
 
