@@ -7,7 +7,7 @@ from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 
-from project.models.shallowConvNet.SCNmodel import ShallowConvNet
+from project.models.shallowConvNet.Deep_ensembles.SCNmodel import ShallowConvNet
 
 from keras.utils import np_utils
 

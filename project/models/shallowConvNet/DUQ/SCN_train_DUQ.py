@@ -82,7 +82,7 @@ def main():
             y_categorical,
             callbacks=[early_stopping],     # early stopping seems to work worse with DUQ, it needs long to train it seems
             epochs=200, batch_size=64, validation_split=0.1 #, sample_weight=weights
-            ,verbose=1,
+            ,verbose=0,
         )
 
         # model.save(f'../saved_trained_models/SCN/PerSubject/subject{subject_id}')
@@ -99,12 +99,13 @@ def main():
 
         # print("Predicted classes are: ", predicted_classes)
 
-        # todo this below gives okay results but it is not a real probability as in the riemann as it does not sum to 1
+        # this below gives okay results but it is not a real probability as in the riemann as it does not sum to 1
         # confidence = np.max(predictions, axis=1)
         # print("Confidence: ", confidence)
         # overall_confidence = confidence.mean()
         # print("Overall confidence: ", overall_confidence)
 
+        # does not necessarily change the probabilities from the softmax so not needed per se
         distances = normalize(predictions, axis=1, norm='l1')
         # print("Distances: ", distances)
 

@@ -74,17 +74,17 @@ def main():
         # Assuming you have an MDM instance `model` and test set `X_test`
 
         y_distance = model.transform(X_test)
-        print("Y distances: ", y_distance)
+        # print("Y distances: ", y_distance)
 
-
-        #predictions, uncertainty = model.predict_with_uncertainty(X_test)
+        # predictions, uncertainty = model.predict_with_uncertainty(X_test)
 
         prediction_proba = model.predict_proba(X_test)
+        # prediction_proba = model.predict_proba_temperature(X_test, 0.2)
 
         confidence = np.max(prediction_proba, axis=1)
 
-        print(f"Predictions proba: {prediction_proba}")
-        print(f"Confidence: {confidence}")
+        # print(f"Predictions proba: {prediction_proba}")
+        # print(f"Confidence: {confidence}")
 
         overall_confidence = np.mean(confidence)
 
@@ -94,6 +94,7 @@ def main():
         #print(f"Test accuracy for subject {subject_id}: {accuracy}")
 
         evaluate_model(y_pred, y_test, subject_id)
+        print('/n')
 
 
 
