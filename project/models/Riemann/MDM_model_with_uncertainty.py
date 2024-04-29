@@ -193,6 +193,9 @@ class MDM(BaseEstimator, ClassifierMixin, TransformerMixin):
         """
         return softmax(-self._predict_distances(X) ** 2)
 
+    def predict_proba_temperature(self, X, temperature):
+        return softmax(self._predict_distances(X) / temperature)
+
     def predict_with_uncertainty(self, X):
         """Predict classes and estimate uncertainty based on distances.
 
