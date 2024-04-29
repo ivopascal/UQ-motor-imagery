@@ -193,46 +193,19 @@ class MDM(BaseEstimator, ClassifierMixin, TransformerMixin):
         """
         return softmax(-self._predict_distances(X) ** 2)
 
-    def predict_proba_temperature(self, X, temperature):
+    def predict_proba_temperature(self, X, temperature=1):
+        """Predict proba using softmax of distances divided by temperature.
+
+            Parameters
+            ----------
+            temperature : value that determines the spread of probabilities in the softmax function
+            X : ndarray, shape (n_matrices, n_channels, n_channels)
+                Set of SPD matrices.
+
+            Returns
+            -------
+            prob : ndarray, shape (n_matrices, n_classes)
+                Probabilities for each class.
+            """
         return softmax(self._predict_distances(X) / temperature)
-
-    def predict_with_uncertainty(self, X):
-        """Predict classes and estimate uncertainty based on distances.
-
-        Parameters
-        ----------
-        X : ndarray, shape (n_matrices, n_channels, n_channels)
-            Set of SPD matrices.
-
-        Returns
-        -------
-        predictions : ndarray of int, shape (n_matrices,)
-            Predictions for each matrix.
-        uncertainty : ndarray, shape (n_matrices,)
-            Estimated uncertainty for each prediction.
-        """
-        dist = self._predict_distances(X)
-        predictions = self.classes_[dist.argmin(axis=1)]
-
-        dist = (dist-np.min(dist)) / (np.max(dist)-np.min(dist))
-
-        dist = np.sort(dist, axis=1)
-
-        uncertainty = dist.min(axis=1)      # for certainty do 1 - dist.min(axis=1)
-
-        # D1 = dist[:, 0]
-        # D2 = dist[:, 1]
-        #
-        # # Compute the margin
-        # margin = D2 - D1
-        #
-        # # Combine D1 and margin to compute uncertainty
-        # # For instance, by taking a weighted sum or a product
-        # # Adjust the weights or the method of combination as needed
-        # uncertainty = D1 + margin  # This is a simple sum. Adjust as needed.
-
-        # Optionally, normalize the uncertainty
-        # uncertainty = (uncertainty - uncertainty.min()) / (uncertainty.max() - uncertainty.min())
-
-        return predictions, uncertainty
 

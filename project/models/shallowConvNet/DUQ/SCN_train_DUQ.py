@@ -36,7 +36,7 @@ def evaluate_model(y_pred, y_true, subject_id):
     plt.xlabel("Predicted Labels")
     plt.ylabel("True Labels")
     plt.title(f"Confusion Matrix subject {subject_id}")
-    #plt.savefig('confusion.png')
+    # plt.savefig(f"./graphs/confusion_subject{subject_id}.png")
     plt.show()
 
 
@@ -48,7 +48,7 @@ def main():
 
     early_stopping = EarlyStopping(
         monitor='val_loss',
-        patience=10,  # Number of epochs with no improvement
+        patience=20,  # Number of epochs with no improvement
         mode='min',  # Minimize validation loss
         restore_best_weights=True  # Restore model weights from the epoch with the best value of the monitored quantity
     )
@@ -87,39 +87,22 @@ def main():
 
         # model.save(f'../saved_trained_models/SCN/PerSubject/subject{subject_id}')
 
-        # Now test how good the model performs
         label_encoder = LabelEncoder()
         test_labels = label_encoder.fit_transform(y_test)
 
         predictions = model.predict(X_test)
 
-        # print("Predictions are: ", predictions)
+        predicted_classes = np.argmax(predictions, axis=1)
+        evaluate_model(predicted_classes, test_labels, subject_id)
 
-        predicted_classes = np.argmax(predictions, axis=1)      # slides matthias: arg max Kc(fθ(x), ec )
-
-        # print("Predicted classes are: ", predicted_classes)
-
-        # this below gives okay results but it is not a real probability as in the riemann as it does not sum to 1
-        # confidence = np.max(predictions, axis=1)
-        # print("Confidence: ", confidence)
-        # overall_confidence = confidence.mean()
-        # print("Overall confidence: ", overall_confidence)
-
-        # does not necessarily change the probabilities from the softmax so not needed per se
+        # Calculate probabilities to determine the confidence of the model
         distances = normalize(predictions, axis=1, norm='l1')
-        # print("Distances: ", distances)
-
         temperature = 0.3       # This best followed the accuracy and F1 scores
         prediction_proba = softmax(distances / temperature)
-        # print("Prediction probabilities: ", prediction_proba)
 
         confidence = np.max(prediction_proba, axis=1)
-        # print("Confidence: ", confidence)
-
         overall_confidence = np.mean(confidence)
         print("Overall Confidence: ", overall_confidence)
-
-        evaluate_model(predicted_classes, test_labels, subject_id)
 
 
 
