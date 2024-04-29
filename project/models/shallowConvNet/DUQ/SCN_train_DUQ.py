@@ -68,7 +68,6 @@ def plot_and_evaluate(y_pred, y_true, subject_id):
     plt.show()
 
 
-
 def main():
     dataset = BNCI2014_001()        # load dataset
     paradigm = MotorImagery(        # make paradigm, filter between 7.5 and 30 Hz

@@ -1,4 +1,5 @@
 import numpy as np
+from keras_uncertainty.utils import classifier_calibration_error, classifier_calibration_curve
 from matplotlib import pyplot as plt
 from moabb.datasets import BNCI2014_001
 from moabb.paradigms import MotorImagery
@@ -9,19 +10,39 @@ import seaborn as sns
 from sklearn.utils import compute_sample_weight
 
 from project.models.Riemann.MDM_model_with_uncertainty import MDM  # this is same to pyriemann
-import warnings
+from sklearn.utils.extmath import softmax
+from sklearn.preprocessing import LabelEncoder, normalize
 
+import warnings
 
 warnings.filterwarnings('ignore', category=FutureWarning)
 
 
-def evaluate_model(y_pred, y_true, subject_id):
+def evaluate_model(y_predictions, y_test, prediction_proba,subject_id):
+    plot_and_evaluate(y_predictions, y_test, subject_id)
+
+    confidence = np.max(prediction_proba, axis=1)
+    overall_confidence = np.mean(confidence)
+    print(f"Overall Confidence: {overall_confidence}")
+
+    ece = classifier_calibration_error(y_predictions, y_test, confidence)
+    print("ECE: ", ece)
+
+    x, y = classifier_calibration_curve(y_predictions, y_test, confidence)
+    # classifier_accuracy_confidence_curve(predicted_classes, test_labels, confidence)
+
+    plt.plot(x, y, color='red')
+    plt.plot([0, 1], [0, 1], color='black')
+    plt.show()
+
+
+def plot_and_evaluate(y_pred, y_true, subject_id):
     subject_id = subject_id
     accuracy = accuracy_score(y_true, y_pred)
     print(f"Subject {subject_id} Validation accuracy: ", accuracy)
 
     f1 = f1_score(y_true, y_pred, average='macro')
-    print(f'F1 score subject{subject_id}: \n', f1)
+    print(f'F1 score subject{subject_id}: ', f1)
 
     cm = confusion_matrix(y_true, y_pred)
     sns.heatmap(cm, annot=True, fmt="d", cmap="Blues")
@@ -57,15 +78,11 @@ def main():
 
         # Predict the labels for the test set
         y_pred = model.predict(X_test)
-        evaluate_model(y_pred, y_test, subject_id)
 
         # Determine the confidence of the model
-        # prediction_proba = model.predict_proba(X_test)          # dit geeft net aan iets betere waardes maar weinig verschil
-        prediction_proba = model.predict_proba_temperature(X_test, 0.2)
-
-        confidence = np.max(prediction_proba, axis=1)
-        overall_confidence = np.mean(confidence)
-        print(f"Overall Confidence: {overall_confidence}")
+        # prediction_proba = model.predict_proba(X_test) # dit geeft net aan iets betere waardes maar weinig verschil
+        prediction_proba = model.predict_proba_temperature(X_test, 0.2) # dit is meer zoals DUQ gedaan is
+        evaluate_model(y_pred, y_test, prediction_proba, subject_id)
 
 
 
