@@ -1,5 +1,5 @@
 import numpy as np
-from keras_uncertainty.utils import classifier_calibration_error, classifier_calibration_curve
+from keras_uncertainty.utils import classifier_calibration_error, classifier_calibration_curve, entropy
 from matplotlib import pyplot as plt
 from moabb.datasets import BNCI2014_001
 from moabb.paradigms import MotorImagery

@@ -1,6 +1,6 @@
 from keras.callbacks import EarlyStopping
 from keras.optimizers import Adam
-from keras_uncertainty.utils import classifier_calibration_error, classifier_calibration_curve
+from keras_uncertainty.utils import classifier_calibration_error, classifier_calibration_curve, entropy
 from matplotlib import pyplot as plt
 from moabb.datasets import BNCI2014_001
 from moabb.paradigms import MotorImagery
@@ -23,19 +23,22 @@ import warnings
 warnings.filterwarnings('ignore', category=FutureWarning)
 
 
-def evaluate_model(y_pred, test_labels, subject_id):
-    predicted_classes = np.argmax(y_pred, axis=1)
+def evaluate_model(y_predictions, y_test, subject_id):
+    predicted_classes = np.argmax(y_predictions, axis=1)
 
-    plot_and_evaluate(predicted_classes, test_labels, subject_id)
+    plot_and_evaluate(predicted_classes, y_test, subject_id)
 
-    confidence = np.max(y_pred, axis=1)
+    confidence = np.max(y_predictions, axis=1)
     overall_confidence = np.mean(confidence)
     print("Overall Confidence: ", overall_confidence)
 
-    ece = classifier_calibration_error(predicted_classes, test_labels, confidence)
+    ece = classifier_calibration_error(predicted_classes, y_test, confidence)
     print("ECE: ", ece)
 
-    x, y = classifier_calibration_curve(predicted_classes, test_labels, confidence)
+    entr = entropy(y_test, y_predictions)
+    print("Entropy: ", entr)
+
+    x, y = classifier_calibration_curve(predicted_classes, y_test, confidence)
     # classifier_accuracy_confidence_curve(predicted_classes, test_labels, confidence)
 
     plt.plot(x, y, color='red', alpha=1, linewidth=2)
@@ -77,7 +80,7 @@ def main():
     )
 
     num_subjects = 9
-    num_models = 2
+    num_models = 5
 
     for subject_id in range(1, num_subjects + 1):
         subject = [subject_id]

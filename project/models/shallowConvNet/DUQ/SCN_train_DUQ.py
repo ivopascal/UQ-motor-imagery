@@ -1,6 +1,6 @@
 from keras.callbacks import EarlyStopping
 from keras_uncertainty.utils import classifier_calibration_error, classifier_calibration_curve, \
-    classifier_accuracy_confidence_curve
+    classifier_accuracy_confidence_curve, entropy
 from matplotlib import pyplot as plt
 from moabb.datasets import BNCI2014_001
 from moabb.paradigms import MotorImagery
@@ -27,12 +27,12 @@ import warnings
 warnings.filterwarnings('ignore', category=FutureWarning)
 
 
-def evaluate_model(predictions, test_labels, subject_id):
-    predicted_classes = np.argmax(predictions, axis=1)
-    plot_and_evaluate(predicted_classes, test_labels, subject_id)
+def evaluate_model(y_predictions, y_test, subject_id):
+    predicted_classes = np.argmax(y_predictions, axis=1)
+    plot_and_evaluate(predicted_classes, y_test, subject_id)
 
     # Calculate probabilities to determine the confidence of the model
-    distances = normalize(predictions, axis=1, norm='l1')
+    distances = normalize(y_predictions, axis=1, norm='l1')
     temperature = 0.3  # This best followed the accuracy and F1 scores
     prediction_proba = softmax(distances / temperature)
 
@@ -40,10 +40,13 @@ def evaluate_model(predictions, test_labels, subject_id):
     overall_confidence = np.mean(confidence)
     print("Overall Confidence: ", overall_confidence)
 
-    ece = classifier_calibration_error(predicted_classes, test_labels, confidence)
+    ece = classifier_calibration_error(predicted_classes, y_test, confidence)
     print("ECE: ", ece)
 
-    x, y = classifier_calibration_curve(predicted_classes, test_labels, confidence)
+    entr = entropy(y_test, y_predictions)
+    print("Entropy: ", entr)
+
+    x, y = classifier_calibration_curve(predicted_classes, y_test, confidence)
     # classifier_accuracy_confidence_curve(predicted_classes, test_labels, confidence)
 
     plt.plot(x, y, color='red', alpha=1, linewidth=2)
