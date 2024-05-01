@@ -34,6 +34,8 @@ def evaluate_model(y_predictions, y_test, subject_id):
     # Calculate probabilities to determine the confidence of the model
     distances = normalize(y_predictions, axis=1, norm='l1')
     temperature = 0.3  # This best followed the accuracy and F1 scores
+    # todo temperature laten fitten op data elke keer
+
     prediction_proba = softmax(distances / temperature)
 
     confidence = np.max(prediction_proba, axis=1)

@@ -86,6 +86,8 @@ def main():
         # Determine the confidence of the model
         # prediction_proba = model.predict_proba(X_test) # dit geeft net aan iets betere waardes maar weinig verschil
         prediction_proba = model.predict_proba_temperature(X_test, 0.2) # dit is meer zoals DUQ gedaan is
+        # todo temperature laten fitten op data elke keer
+
         evaluate_model(y_pred, y_test, prediction_proba, subject_id)
 
 
