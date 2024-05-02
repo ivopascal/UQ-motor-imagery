@@ -1,60 +1,16 @@
 import numpy as np
-from keras_uncertainty.utils import classifier_calibration_error, classifier_calibration_curve
-from matplotlib import pyplot as plt
 from moabb.datasets import BNCI2014_001
 from moabb.paradigms import MotorImagery
 from pyriemann.estimation import Covariances
-from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 from sklearn.model_selection import train_test_split
-import seaborn as sns
 from sklearn.utils import compute_sample_weight
 
-from project.models.Riemann.MDM_model_with_uncertainty import MDM  # this is same to pyriemann
-from sklearn.utils.extmath import softmax
-from sklearn.preprocessing import LabelEncoder, normalize
+from project.Utils.evaluate_and_plot import evaluate_uncertainty, plot_confusion_and_evaluate, plot_calibration
+from project.models.Riemann.MDM_model_with_uncertainty import MDM
 
 import warnings
 
 warnings.filterwarnings('ignore', category=FutureWarning)
-
-
-def evaluate_model(y_predictions, y_test, prediction_proba,subject_id):
-    plot_and_evaluate(y_predictions, y_test, subject_id)
-
-    confidence = np.max(prediction_proba, axis=1)
-    overall_confidence = np.mean(confidence)
-    print(f"Overall Confidence: {overall_confidence}")
-
-    ece = classifier_calibration_error(y_predictions, y_test, confidence)
-    print("ECE: ", ece)
-
-    x, y = classifier_calibration_curve(y_predictions, y_test, confidence)
-    # classifier_accuracy_confidence_curve(predicted_classes, test_labels, confidence)
-
-    plt.plot(x, y, color='red', alpha=1, linewidth=2)
-    plt.plot([0, 1], [0, 1], color='black', alpha=0.2)
-    plt.xlabel("Confidence")
-    plt.ylabel("Accuracy")
-    plt.title(f"Confusion Matrix subject {subject_id}")
-    # plt.savefig(f"./graphs/calibration_subject{subject_id}.png")
-    plt.show()
-
-
-def plot_and_evaluate(y_pred, y_true, subject_id):
-    subject_id = subject_id
-    accuracy = accuracy_score(y_true, y_pred)
-    print(f"Subject {subject_id} Validation accuracy: ", accuracy)
-
-    f1 = f1_score(y_true, y_pred, average='macro')
-    print(f'F1 score subject{subject_id}: ', f1)
-
-    cm = confusion_matrix(y_true, y_pred)
-    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues")
-    plt.xlabel("Predicted Labels")
-    plt.ylabel("True Labels")
-    plt.title(f"Confusion Matrix subject {subject_id}")
-    # plt.savefig(f"./graphs/confusion_subject{subject_id}.png")
-    plt.show()
 
 
 def main():
@@ -86,8 +42,14 @@ def main():
         # Determine the confidence of the model
         # prediction_proba = model.predict_proba(X_test) # dit geeft net aan iets betere waardes maar weinig verschil
         prediction_proba = model.predict_proba_temperature(X_test, 0.2) # dit is meer zoals DUQ gedaan is
-        evaluate_model(y_pred, y_test, prediction_proba, subject_id)
+        # todo temperature laten fitten op data elke keer
 
+        confidence = np.max(prediction_proba, axis=1)
+
+        # plot and evaluate
+        plot_confusion_and_evaluate(y_pred, y_test, subject_id, save=True)
+        evaluate_uncertainty(y_pred, y_test, confidence, subject_id)
+        plot_calibration(y_pred, y_test, confidence, subject_id, save=True)
 
 
 if __name__ == '__main__':

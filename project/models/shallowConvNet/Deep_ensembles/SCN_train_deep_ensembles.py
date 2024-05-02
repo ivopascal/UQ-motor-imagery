@@ -1,67 +1,22 @@
 from keras.callbacks import EarlyStopping
 from keras.optimizers import Adam
-from keras_uncertainty.utils import classifier_calibration_error, classifier_calibration_curve
-from matplotlib import pyplot as plt
 from moabb.datasets import BNCI2014_001
 from moabb.paradigms import MotorImagery
-from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 from sklearn.model_selection import train_test_split
-from tqdm import tqdm
+from sklearn.preprocessing import LabelEncoder
+from keras.utils import np_utils
+from keras_uncertainty.utils import entropy
 
 from project.models.shallowConvNet.Deep_ensembles.SCNmodel import ShallowConvNet
+from project.Utils.evaluate_and_plot import plot_confusion_and_evaluate, evaluate_uncertainty, plot_calibration
 
-from keras.utils import np_utils
-
-from sklearn.preprocessing import LabelEncoder, normalize
+from tqdm import tqdm
 import numpy as np
-
-import seaborn as sns
-from sklearn.utils.extmath import softmax
 
 import warnings
 
 warnings.filterwarnings('ignore', category=FutureWarning)
 
-
-def evaluate_model(y_pred, test_labels, subject_id):
-    predicted_classes = np.argmax(y_pred, axis=1)
-
-    plot_and_evaluate(predicted_classes, test_labels, subject_id)
-
-    confidence = np.max(y_pred, axis=1)
-    overall_confidence = np.mean(confidence)
-    print("Overall Confidence: ", overall_confidence)
-
-    ece = classifier_calibration_error(predicted_classes, test_labels, confidence)
-    print("ECE: ", ece)
-
-    x, y = classifier_calibration_curve(predicted_classes, test_labels, confidence)
-    # classifier_accuracy_confidence_curve(predicted_classes, test_labels, confidence)
-
-    plt.plot(x, y, color='red', alpha=1, linewidth=2)
-    plt.plot([0, 1], [0, 1], color='black', alpha=0.2)
-    plt.xlabel("Confidence")
-    plt.ylabel("Accuracy")
-    plt.title(f"Confusion Matrix subject {subject_id}")
-    # plt.savefig(f"./graphs/calibration_subject{subject_id}.png")
-    plt.show()
-
-
-def plot_and_evaluate(y_pred, y_true, subject_id):
-    subject_id = subject_id
-    accuracy = accuracy_score(y_true, y_pred)
-    print(f"Subject {subject_id} Validation accuracy: ", accuracy)
-
-    f1 = f1_score(y_true, y_pred, average='macro')
-    print(f'F1 score subject{subject_id}: ', f1)
-
-    cm = confusion_matrix(y_true, y_pred)
-    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues")
-    plt.xlabel("Predicted Labels")
-    plt.ylabel("True Labels")
-    plt.title(f"Confusion Matrix subject {subject_id}")
-    # plt.savefig(f"./graphs/confusion_subject{subject_id}.png")
-    plt.show()
 
 def main():
     dataset = BNCI2014_001()
@@ -122,7 +77,16 @@ def main():
         label_encoder = LabelEncoder()
         test_labels = label_encoder.fit_transform(y_test)
 
-        evaluate_model(max_pred_0, test_labels, subject_id)
+        predicted_classes = np.argmax(max_pred_0, axis=1)
+        confidence = np.max(max_pred_0, axis=1)
+
+        entr = entropy(test_labels, max_pred_0)
+        print("Entropy: ", entr)
+
+        # plot and evaluate
+        plot_confusion_and_evaluate(predicted_classes, test_labels, subject_id, save=True)
+        evaluate_uncertainty(predicted_classes, test_labels, confidence, subject_id)
+        plot_calibration(predicted_classes, test_labels, confidence, subject_id, save=True)
 
 
 
