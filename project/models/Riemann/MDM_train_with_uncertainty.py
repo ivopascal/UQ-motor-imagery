@@ -24,8 +24,6 @@ def main():
 
     num_subjects = len(dataset.subject_list)
     for subject_id in tqdm(range(1, num_subjects + 1)):
-        model = MDM(metric=dict(mean='riemann', distance='riemann'))
-
         X, y, metadata = load_data(dataset, subject_id, n_classes)
 
         # Compute covariance matrices from the raw EEG signals
@@ -34,6 +32,8 @@ def main():
 
         X_train, X_test, y_train, y_test = train_test_split(X_cov, y, test_size=0.2, random_state=42)
         weights = compute_sample_weight('balanced', y=y_train)
+
+        model = MDM(metric=dict(mean='riemann', distance='riemann'))
 
         model.fit(X_train, y_train, sample_weight=weights)
 

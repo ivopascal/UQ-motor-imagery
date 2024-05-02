@@ -7,6 +7,7 @@ from sklearn.preprocessing import LabelEncoder
 from keras.utils import np_utils
 from keras_uncertainty.utils import entropy
 
+from project.Utils.load_data import load_data
 from project.models.shallowConvNet.Deep_ensembles.SCNmodel import ShallowConvNet
 from project.Utils.evaluate_and_plot import plot_confusion_and_evaluate, evaluate_uncertainty, plot_calibration
 
@@ -20,28 +21,25 @@ warnings.filterwarnings('ignore', category=FutureWarning)
 
 def main():
     dataset = BNCI2014_001()
-    paradigm = MotorImagery(
-        n_classes=4, fmin=7.5, fmax=30, tmin=0, tmax=None
-    )
+    n_classes = 4
+
+    # datasets = [dataset]
 
     early_stopping = EarlyStopping(
         monitor='val_loss',
-        patience=7,  # Number of epochs with no improvement
+        patience=20,  # Number of epochs with no improvement
         mode='min',  # Minimize validation loss
         restore_best_weights=True  # Restore model weights from the epoch with the best value of the monitored quantity
     )
 
-    num_subjects = 9
-    num_models = 2
-
+    num_models = 5
+    num_subjects = len(dataset.subject_list)
     for subject_id in range(1, num_subjects + 1):
-        subject = [subject_id]
-
-        X, y, metadata = paradigm.get_data(dataset=dataset, subjects=subject)
+        X, y, metadata = load_data(dataset, subject_id, n_classes)
 
         unique_labels = np.unique(y)
         num_unique_labels = len(unique_labels)
-        assert num_unique_labels == 4, "The number of unique labels does not match the expected number of classes."
+        assert num_unique_labels == n_classes, "The number of unique labels does not match the expected number of classes."
 
         X_reshaped = X.reshape(X.shape[0], X.shape[1], X.shape[2], 1)
 
