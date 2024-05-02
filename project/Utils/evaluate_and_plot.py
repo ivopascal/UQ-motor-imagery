@@ -30,16 +30,16 @@ def evaluate_uncertainty(y_predictions, y_test, confidence, subject_id):
     overall_confidence = np.mean(confidence)
     print(f"Overall Confidence {subject_id}: ", overall_confidence)
 
-    ece = calibration.get_ECE(y_predictions, y_test, confidence)
+    ece = calibration.get_ece(y_predictions, y_test, confidence)
     print(f"ECE {subject_id}: ", ece)
-    mce = calibration.get_MCE(y_predictions, y_test, confidence)
+    mce = calibration.get_mce(y_predictions, y_test, confidence)
     print(f"MCE {subject_id}: ", mce)
-    nce = calibration.get_NCE(y_predictions, y_test, confidence)
+    nce = calibration.get_nce(y_predictions, y_test, confidence)
     print(f"NCE {subject_id}: ", nce)
 
 
 def plot_calibration(y_predictions, y_test, confidence, subject_id, save=True):
-    calibration.plot_Calibration_Curve(y_predictions, y_test, confidence, subject_id, save)
+    calibration.plot_calibration_curve(y_predictions, y_test, confidence, subject_id, save)
     plt.clf()
     return
 
