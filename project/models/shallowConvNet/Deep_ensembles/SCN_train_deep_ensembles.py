@@ -1,6 +1,6 @@
 from keras.callbacks import EarlyStopping
 from keras.optimizers import Adam
-from keras_uncertainty.utils import classifier_calibration_error, classifier_calibration_curve, entropy
+from keras_uncertainty.utils import entropy
 from matplotlib import pyplot as plt
 from moabb.datasets import BNCI2014_001
 from moabb.paradigms import MotorImagery
@@ -8,6 +8,7 @@ from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 
+import project.Uncertainty.calibration as calibration
 from project.models.shallowConvNet.Deep_ensembles.SCNmodel import ShallowConvNet
 
 from keras.utils import np_utils
@@ -32,22 +33,17 @@ def evaluate_model(y_predictions, y_test, subject_id):
     overall_confidence = np.mean(confidence)
     print("Overall Confidence: ", overall_confidence)
 
-    ece = classifier_calibration_error(predicted_classes, y_test, confidence)
+    ece = calibration.get_ECE(y_predictions, y_test, confidence)
     print("ECE: ", ece)
+    mce = calibration.get_MCE(y_predictions, y_test, confidence)
+    print("MCE: ", mce)
+    nce = calibration.get_NCE(y_predictions, y_test, confidence)
+    print("NCE: ", nce)
 
     entr = entropy(y_test, y_predictions)
     print("Entropy: ", entr)
 
-    x, y = classifier_calibration_curve(predicted_classes, y_test, confidence)
-    # classifier_accuracy_confidence_curve(predicted_classes, test_labels, confidence)
-
-    plt.plot(x, y, color='red', alpha=1, linewidth=2)
-    plt.plot([0, 1], [0, 1], color='black', alpha=0.2)
-    plt.xlabel("Confidence")
-    plt.ylabel("Accuracy")
-    plt.title(f"Confusion Matrix subject {subject_id}")
-    # plt.savefig(f"./graphs/calibration_subject{subject_id}.png")
-    plt.show()
+    calibration.plot_Calibration_Curve(y_predictions, y_test, confidence, subject_id, save=True)
 
 
 def plot_and_evaluate(y_pred, y_true, subject_id):
@@ -63,7 +59,7 @@ def plot_and_evaluate(y_pred, y_true, subject_id):
     plt.xlabel("Predicted Labels")
     plt.ylabel("True Labels")
     plt.title(f"Confusion Matrix subject {subject_id}")
-    # plt.savefig(f"./graphs/confusion_subject{subject_id}.png")
+    plt.savefig(f"./graphs/confusion_plots/confusion_subject{subject_id}.png")
     plt.show()
 
 def main():

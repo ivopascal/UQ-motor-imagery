@@ -9,6 +9,7 @@ from sklearn.model_selection import train_test_split
 import seaborn as sns
 from sklearn.utils import compute_sample_weight
 
+from project.Uncertainty import calibration
 from project.models.Riemann.MDM_model_with_uncertainty import MDM  # this is same to pyriemann
 from sklearn.utils.extmath import softmax
 from sklearn.preprocessing import LabelEncoder, normalize
@@ -25,19 +26,14 @@ def evaluate_model(y_predictions, y_test, prediction_proba,subject_id):
     overall_confidence = np.mean(confidence)
     print(f"Overall Confidence: {overall_confidence}")
 
-    ece = classifier_calibration_error(y_predictions, y_test, confidence)
+    ece = calibration.get_ECE(y_predictions, y_test, confidence)
     print("ECE: ", ece)
+    mce = calibration.get_MCE(y_predictions, y_test, confidence)
+    print("MCE: ", mce)
+    nce = calibration.get_NCE(y_predictions, y_test, confidence)
+    print("NCE: ", nce)
 
-    x, y = classifier_calibration_curve(y_predictions, y_test, confidence)
-    # classifier_accuracy_confidence_curve(predicted_classes, test_labels, confidence)
-
-    plt.plot(x, y, color='red', alpha=1, linewidth=2)
-    plt.plot([0, 1], [0, 1], color='black', alpha=0.2)
-    plt.xlabel("Confidence")
-    plt.ylabel("Accuracy")
-    plt.title(f"Confusion Matrix subject {subject_id}")
-    # plt.savefig(f"./graphs/calibration_subject{subject_id}.png")
-    plt.show()
+    calibration.plot_Calibration_Curve(y_predictions, y_test, confidence, subject_id, save=True)
 
 
 def plot_and_evaluate(y_pred, y_true, subject_id):
@@ -53,7 +49,7 @@ def plot_and_evaluate(y_pred, y_true, subject_id):
     plt.xlabel("Predicted Labels")
     plt.ylabel("True Labels")
     plt.title(f"Confusion Matrix subject {subject_id}")
-    # plt.savefig(f"./graphs/confusion_subject{subject_id}.png")
+    plt.savefig(f"./graphs/confusion_plots/confusion_subject{subject_id}.png")
     plt.show()
 
 
