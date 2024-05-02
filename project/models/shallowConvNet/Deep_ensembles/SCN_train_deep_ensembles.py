@@ -1,66 +1,22 @@
 from keras.callbacks import EarlyStopping
 from keras.optimizers import Adam
-from keras_uncertainty.utils import entropy
-from matplotlib import pyplot as plt
 from moabb.datasets import BNCI2014_001
 from moabb.paradigms import MotorImagery
-from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 from sklearn.model_selection import train_test_split
-from tqdm import tqdm
-
-import project.Uncertainty.calibration as calibration
-from project.models.shallowConvNet.Deep_ensembles.SCNmodel import ShallowConvNet
-
+from sklearn.preprocessing import LabelEncoder
 from keras.utils import np_utils
+from keras_uncertainty.utils import entropy
 
-from sklearn.preprocessing import LabelEncoder, normalize
+from project.models.shallowConvNet.Deep_ensembles.SCNmodel import ShallowConvNet
+from project.Utils.evaluate_and_plot import plot_confusion_and_evaluate, evaluate_uncertainty, plot_calibration
+
+from tqdm import tqdm
 import numpy as np
-
-import seaborn as sns
-from sklearn.utils.extmath import softmax
 
 import warnings
 
 warnings.filterwarnings('ignore', category=FutureWarning)
 
-
-def evaluate_model(y_predictions, y_test, subject_id):
-    predicted_classes = np.argmax(y_predictions, axis=1)
-
-    plot_and_evaluate(predicted_classes, y_test, subject_id)
-
-    confidence = np.max(y_predictions, axis=1)
-    overall_confidence = np.mean(confidence)
-    print("Overall Confidence: ", overall_confidence)
-
-    ece = calibration.get_ECE(y_predictions, y_test, confidence)
-    print("ECE: ", ece)
-    mce = calibration.get_MCE(y_predictions, y_test, confidence)
-    print("MCE: ", mce)
-    nce = calibration.get_NCE(y_predictions, y_test, confidence)
-    print("NCE: ", nce)
-
-    entr = entropy(y_test, y_predictions)
-    print("Entropy: ", entr)
-
-    calibration.plot_Calibration_Curve(y_predictions, y_test, confidence, subject_id, save=True)
-
-
-def plot_and_evaluate(y_pred, y_true, subject_id):
-    subject_id = subject_id
-    accuracy = accuracy_score(y_true, y_pred)
-    print(f"Subject {subject_id} Validation accuracy: ", accuracy)
-
-    f1 = f1_score(y_true, y_pred, average='macro')
-    print(f'F1 score subject{subject_id}: ', f1)
-
-    cm = confusion_matrix(y_true, y_pred)
-    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues")
-    plt.xlabel("Predicted Labels")
-    plt.ylabel("True Labels")
-    plt.title(f"Confusion Matrix subject {subject_id}")
-    plt.savefig(f"./graphs/confusion_plots/confusion_subject{subject_id}.png")
-    plt.show()
 
 def main():
     dataset = BNCI2014_001()
@@ -76,7 +32,7 @@ def main():
     )
 
     num_subjects = 9
-    num_models = 5
+    num_models = 2
 
     for subject_id in range(1, num_subjects + 1):
         subject = [subject_id]
@@ -121,7 +77,16 @@ def main():
         label_encoder = LabelEncoder()
         test_labels = label_encoder.fit_transform(y_test)
 
-        evaluate_model(max_pred_0, test_labels, subject_id)
+        predicted_classes = np.argmax(max_pred_0, axis=1)
+        confidence = np.max(max_pred_0, axis=1)
+
+        entr = entropy(test_labels, max_pred_0)
+        print("Entropy: ", entr)
+
+        # plot and evaluate
+        plot_confusion_and_evaluate(predicted_classes, test_labels, subject_id, save=True)
+        evaluate_uncertainty(predicted_classes, test_labels, confidence, subject_id)
+        plot_calibration(predicted_classes, test_labels, confidence, subject_id, save=True)
 
 
 

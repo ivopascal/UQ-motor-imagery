@@ -42,6 +42,7 @@ def plot_Calibration_Curve(y_pred, y_true, y_confidences, subject_id, metric="ma
     plt.title(f"Confusion Matrix subject {subject_id}")
     if save:
         plt.savefig(f"./graphs/calibration_plots/calibration_subject{subject_id}.png")
+    # else:
     plt.show()
 
 
@@ -91,7 +92,7 @@ def get_NCE(y_pred, y_true, y_confidences, metric="mae", num_bins=10, weighted=F
     """
             Estimates Net calibration error for a classifier.
             The definition for Net calibration error can be found in the paper by Groot, T. (2024).
-            Confidence is Key: Uncertainty Estimation in Large Language Models and Vision Language Models (Doctoral dissertation).
+            Confidence is Key: Utils Estimation in Large Language Models and Vision Language Models (Doctoral dissertation).
 
             y_pred are the class predictions of the model (integers), while y_true is the ground truth labels (integers),
             and y_confidences are confidences for each prediction (in the [0, 1] range).
