@@ -2,7 +2,6 @@ from itertools import tee
 import numpy as np
 from keras_uncertainty.utils import classifier_calibration_error, classifier_calibration_curve
 from matplotlib import pyplot as plt
-# from more_itertools import pairwise
 
 '''
 This file is based on the calibration.py file in the keras_uncertainty library 
@@ -15,7 +14,7 @@ EPSILON = 1e-5
 
 # From itertools recipes
 def pairwise(iterable):
-    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
+    """s -> (s0,s1), (s1,s2), (s2, s3), ..."""
     a, b = tee(iterable)
     next(b, None)
     return zip(a, b)
@@ -28,12 +27,24 @@ def accuracy(y_true, y_pred):
     return np.mean(y_true == y_pred)
 
 
-def get_Calibration_Curve(y_pred, y_true, y_confidences, metric="mae", num_bins=10):
+def get_calibration_curve(y_pred, y_true, y_confidences, metric="mae", num_bins=10):
+    """
+        Estimates the calibration plot for a classifier and returns the points in the plot.
+        y_pred are the class predictions of the model (integers), while y_true is the ground truth labels (integers),
+        and y_confidences are confidences for each prediction (in the [0, 1] range).
+        All three arrays must have equal number of samples.
+    """
     return classifier_calibration_curve(y_pred, y_true, y_confidences, metric, num_bins)
 
 
-def plot_Calibration_Curve(y_pred, y_true, y_confidences, subject_id, metric="mae", num_bins=10, save=True):
-    x, y = get_Calibration_Curve(y_pred, y_true, y_confidences, metric, num_bins)
+def plot_calibration_curve(y_pred, y_true, y_confidences, subject_id, metric="mae", num_bins=10, save=True):
+    """
+        Plots the calibration curve for a classifier.
+        y_pred are the class predictions of the model (integers), while y_true is the ground truth labels (integers),
+        and y_confidences are confidences for each prediction (in the [0, 1] range).
+        All three arrays must have equal number of samples.
+    """
+    x, y = get_calibration_curve(y_pred, y_true, y_confidences, metric, num_bins)
 
     plt.plot(x, y, color='red', alpha=1, linewidth=2)
     plt.plot([0, 1], [0, 1], color='black', alpha=0.2)
@@ -46,17 +57,23 @@ def plot_Calibration_Curve(y_pred, y_true, y_confidences, subject_id, metric="ma
     plt.show()
 
 
-def get_ECE(y_pred, y_true, y_confidences, metric="mae", num_bins=10, weighted=False):
+def get_ece(y_pred, y_true, y_confidences, metric="mae", num_bins=10, weighted=False):
+    """
+        Estimates calibration error for a classifier.
+        y_pred are the class predictions of the model (integers), while y_true is the ground truth labels (integers),
+        and y_confidences are confidences for each prediction (in the [0, 1] range).
+        All three arrays must have equal number of samples.
+    """
     return classifier_calibration_error(y_pred, y_true, y_confidences, metric, num_bins, weighted)
 
 
-def get_MCE(y_pred, y_true, y_confidences, metric="mae", num_bins=10, weighted=False):
+def get_mce(y_pred, y_true, y_confidences, metric="mae", num_bins=10, weighted=False):
     """
-            Estimates Maximum calibration error for a classifier.
-            y_pred are the class predictions of the model (integers), while y_true is the ground truth labels (integers),
-            and y_confidences are confidences for each prediction (in the [0, 1] range).
-            All three arrays must have equal number of samples.
-        """
+        Estimates Maximum calibration error for a classifier.
+        y_pred are the class predictions of the model (integers), while y_true is the ground truth labels (integers),
+        and y_confidences are confidences for each prediction (in the [0, 1] range).
+        All three arrays must have equal number of samples.
+    """
 
     bin_edges = np.linspace(0.0, 1.0 + EPSILON, num_bins + 1)
 
@@ -88,16 +105,16 @@ def get_MCE(y_pred, y_true, y_confidences, metric="mae", num_bins=10, weighted=F
     return np.max(errors)
 
 
-def get_NCE(y_pred, y_true, y_confidences, metric="mae", num_bins=10, weighted=False):
+def get_nce(y_pred, y_true, y_confidences, metric="mae", num_bins=10, weighted=False):
     """
-            Estimates Net calibration error for a classifier.
-            The definition for Net calibration error can be found in the paper by Groot, T. (2024).
-            Confidence is Key: Utils Estimation in Large Language Models and Vision Language Models (Doctoral dissertation).
+        Estimates Net calibration error for a classifier.
+        The definition for Net calibration error can be found in the paper by Groot, T. (2024).
+        Confidence is Key: Utils Estimation in Large Language Models and Vision Language Models (Doctoral dissertation).
 
-            y_pred are the class predictions of the model (integers), while y_true is the ground truth labels (integers),
-            and y_confidences are confidences for each prediction (in the [0, 1] range).
-            All three arrays must have equal number of samples.
-        """
+        y_pred are the class predictions of the model (integers), while y_true is the ground truth labels (integers),
+        and y_confidences are confidences for each prediction (in the [0, 1] range).
+        All three arrays must have equal number of samples.
+    """
 
     bin_edges = np.linspace(0.0, 1.0 + EPSILON, num_bins + 1)
 

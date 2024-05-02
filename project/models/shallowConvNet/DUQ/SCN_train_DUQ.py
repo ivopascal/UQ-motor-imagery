@@ -7,12 +7,11 @@ from sklearn.utils.extmath import softmax
 from sklearn.preprocessing import LabelEncoder, normalize
 from keras.utils import np_utils
 
-import numpy as np
-from tqdm import tqdm
-
 from project.Utils.evaluate_and_plot import plot_confusion_and_evaluate, evaluate_uncertainty, plot_calibration
 from project.models.shallowConvNet.DUQ.SCN_model_DUQ import ShallowConvNet
 
+import numpy as np
+from tqdm import tqdm
 
 import warnings
 
@@ -80,7 +79,7 @@ def main():
 
         confidence = np.max(prediction_proba, axis=1)
 
-        entr = entropy(test_labels, predicted_classes)
+        entr = entropy(test_labels, predictions)
         print("Entropy: ", entr)
 
         # plot and evaluate

@@ -1,4 +1,3 @@
-import numpy as np
 from moabb.datasets import BNCI2014_001
 from moabb.paradigms import MotorImagery
 from pyriemann.estimation import Covariances
@@ -7,6 +6,9 @@ from sklearn.utils import compute_sample_weight
 
 from project.Utils.evaluate_and_plot import evaluate_uncertainty, plot_confusion_and_evaluate, plot_calibration
 from project.models.Riemann.MDM_model_with_uncertainty import MDM
+
+import numpy as np
+from tqdm import tqdm
 
 import warnings
 
@@ -20,9 +22,8 @@ def main():
     )
 
     num_subjects = 9
-    for subject_id in range(1, num_subjects + 1):
+    for subject_id in tqdm(range(1, num_subjects + 1)):
         subject = [subject_id]
-
         model = MDM(metric=dict(mean='riemann', distance='riemann'))
 
         X, y, metadata = paradigm.get_data(dataset=dataset, subjects=subject)
