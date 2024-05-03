@@ -2,8 +2,10 @@ from moabb.datasets import BNCI2014_001
 from pyriemann.estimation import Covariances
 from sklearn.model_selection import train_test_split
 from sklearn.utils import compute_sample_weight
+from sklearn.utils.extmath import softmax
 
-from project.Utils.evaluate_and_plot import evaluate_uncertainty, plot_confusion_and_evaluate, plot_calibration
+from project.Utils.evaluate_and_plot import evaluate_uncertainty, plot_confusion_and_evaluate, plot_calibration, \
+    find_best_temperature
 from project.Utils.load_data import load_data
 from project.models.Riemann.MDM_model_with_uncertainty import MDM
 
@@ -40,9 +42,10 @@ def main():
         y_pred = model.predict(X_test)
 
         # Determine the confidence of the model
-        # prediction_proba = model.predict_proba(X_test) # dit geeft net aan iets betere waardes maar weinig verschil
-        prediction_proba = model.predict_proba_temperature(X_test, 0.2) # dit is meer zoals DUQ gedaan is
-        # todo temperature laten fitten op data elke keer
+        distances = model.transform(X_test)
+        temperature = find_best_temperature(y_pred, y_test, distances)
+
+        prediction_proba = softmax(distances / temperature)
 
         confidence = np.max(prediction_proba, axis=1)
 
