@@ -56,7 +56,7 @@ def main():
         model.fit(      # train the model
             X_train,
             y_categorical,
-            callbacks=[early_stopping],     # early stopping seems to work worse with DUQ, it needs long to train it seems
+            callbacks=[early_stopping],
             epochs=200, batch_size=64, validation_split=0.1 #, sample_weight=weights
             ,verbose=1,
         )
@@ -69,10 +69,8 @@ def main():
 
         predicted_classes = np.argmax(predictions, axis=1)
 
-        # Calculate probabilities to determine the confidence of the model
+        # Calculate probabilities with a softmax using a temperature to determine the confidence of the model
         distances = normalize(predictions, axis=1, norm='l1')
-        # temperature = 0.3            # This best followed the accuracy and F1 scores
-
         temperature = find_best_temperature(predicted_classes, test_labels, distances)
 
         prediction_proba = softmax(distances / temperature)

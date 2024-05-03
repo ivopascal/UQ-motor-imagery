@@ -7,13 +7,14 @@ import seaborn as sns
 import numpy as np
 
 
-
 def plot_confusion_and_evaluate(y_pred, y_true, subject_id, save=True):
+    f = open(f"./results/evaluation_subject{subject_id}.txt", "w")
+
     accuracy = accuracy_score(y_true, y_pred)
-    print(f"Subject {subject_id} Validation accuracy: ", accuracy)
+    f.write(f"Subject {subject_id} Validation accuracy: {accuracy}\n")
 
     f1 = f1_score(y_true, y_pred, average='macro')
-    print(f'F1 score subject{subject_id}: ', f1)
+    f.write(f'F1 score subject{subject_id}: {f1}\n')
 
     cm = confusion_matrix(y_true, y_pred)
     sns.heatmap(cm, annot=True, fmt="d", cmap="Blues")
@@ -25,19 +26,25 @@ def plot_confusion_and_evaluate(y_pred, y_true, subject_id, save=True):
     # else:
     plt.show()
     plt.clf()
+
+    f.close()
     return
 
 
 def evaluate_uncertainty(y_predictions, y_test, confidence, subject_id):
+    f = open(f"./results/evaluation_subject{subject_id}.txt", "a")
+
     overall_confidence = np.mean(confidence)
-    print(f"Overall Confidence {subject_id}: ", overall_confidence)
+    f.write(f"Overall Confidence {subject_id}: {overall_confidence}\n")
 
     ece = calibration.get_ece(y_predictions, y_test, confidence)
-    print(f"ECE {subject_id}: ", ece)
+    f.write(f"ECE {subject_id}: {ece}\n")
+
     mce = calibration.get_mce(y_predictions, y_test, confidence)
-    print(f"MCE {subject_id}: ", mce)
+    f.write(f"MCE {subject_id}: {mce}\n")
+
     nce = calibration.get_nce(y_predictions, y_test, confidence)
-    print(f"NCE {subject_id}: ", nce)
+    f.write(f"NCE {subject_id}: {nce}\n")
 
 
 def plot_calibration(y_predictions, y_test, confidence, subject_id, save=True):
