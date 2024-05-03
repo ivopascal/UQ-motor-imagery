@@ -4,9 +4,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.utils import compute_sample_weight
 from sklearn.utils.extmath import softmax
 
-from project.Utils.evaluate_and_plot import evaluate_uncertainty, plot_confusion_and_evaluate, plot_calibration, \
-    find_best_temperature
+from project.Utils.evaluate_and_plot import evaluate_uncertainty, plot_confusion_and_evaluate, plot_calibration
 from project.Utils.load_data import load_data
+from project.Utils.uncertainty_utils import find_best_temperature
 from project.models.Riemann.MDM_model_with_uncertainty import MDM
 
 import numpy as np

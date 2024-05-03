@@ -6,9 +6,9 @@ from sklearn.utils.extmath import softmax
 from sklearn.preprocessing import LabelEncoder, normalize
 from keras.utils import np_utils
 
-from project.Utils.evaluate_and_plot import plot_confusion_and_evaluate, evaluate_uncertainty, plot_calibration, \
-    find_best_temperature
+from project.Utils.evaluate_and_plot import plot_confusion_and_evaluate, evaluate_uncertainty, plot_calibration
 from project.Utils.load_data import load_data
+from project.Utils.uncertainty_utils import find_best_temperature
 from project.models.shallowConvNet.DUQ.SCN_model_DUQ import ShallowConvNet
 
 import numpy as np
