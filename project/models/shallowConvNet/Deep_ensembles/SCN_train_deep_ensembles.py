@@ -1,7 +1,6 @@
 from keras.callbacks import EarlyStopping
 from keras.optimizers import Adam
 from moabb.datasets import BNCI2014_001
-from moabb.paradigms import MotorImagery
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from keras.utils import np_utils
@@ -53,16 +52,16 @@ def main():
 
         for model_idx in tqdm(range(num_models)):
 
-            model = ShallowConvNet(nb_classes=4, Chans=22, Samples=1001, dropoutRate=0.5)
+            model = ShallowConvNet(nb_classes=n_classes, Chans=22, Samples=1001, dropoutRate=0.5)
             optimizer = Adam(learning_rate=0.001)  # standard 0.001
             model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
-            #weights = compute_sample_weight('balanced', y=y_train)
+            # weights = compute_sample_weight('balanced', y=y_train)
             model.fit(
                 X_train,
                 y_categorical,
                 callbacks=[early_stopping],
-                epochs=100, batch_size=64, validation_split=0.1, # sample_weight=weights,
+                epochs=100, batch_size=64, validation_split=0.1,   # sample_weight=weights,
                 verbose=0,
             )
 

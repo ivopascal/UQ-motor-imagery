@@ -1,5 +1,4 @@
 from moabb.datasets import BNCI2014_001
-from moabb.paradigms import MotorImagery
 from pyriemann.estimation import Covariances
 from sklearn.model_selection import train_test_split
 from sklearn.utils import compute_sample_weight

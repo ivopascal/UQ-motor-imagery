@@ -1,7 +1,6 @@
 from keras.callbacks import EarlyStopping
 from keras_uncertainty.utils import entropy
 from moabb.datasets import BNCI2014_001
-from moabb.paradigms import MotorImagery
 from sklearn.model_selection import train_test_split
 from sklearn.utils.extmath import softmax
 from sklearn.preprocessing import LabelEncoder, normalize
@@ -50,7 +49,7 @@ def main():
         y_categorical = np_utils.to_categorical(y_integers, num_classes=num_unique_labels)
 
         net = ShallowConvNet()
-        model = net.build()
+        model = net.build(nb_classes=n_classes, Chans=22, Samples=1001, dropoutRate=0.5)
 
         # weights = compute_sample_weight('balanced', y=y_train)
         model.fit(      # train the model
@@ -72,7 +71,7 @@ def main():
         # Calculate probabilities to determine the confidence of the model
         distances = normalize(predictions, axis=1, norm='l1')
         temperature = 0.3            # This best followed the accuracy and F1 scores
-        # todo temperature laten fitten op data elke keer
+        # todo fit temperature every time such that it takes the value that has the best calibration
 
         prediction_proba = softmax(distances / temperature)
 
