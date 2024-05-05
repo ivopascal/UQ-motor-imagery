@@ -31,7 +31,7 @@ def main():
         restore_best_weights=True  # Restore model weights from the epoch with the best value of the monitored quantity
     )
 
-    num_models = 5
+    num_models = 2
     num_subjects = len(dataset.subject_list)
     for subject_id in range(1, num_subjects + 1):
         X, y, metadata = load_data(dataset, subject_id, n_classes)
@@ -69,21 +69,21 @@ def main():
 
         mean_predictions = np.mean(np.array([predictions]), axis=0)
 
-        max_pred_0 = np.max(mean_predictions, axis=0)
+        prediction_proba = np.max(mean_predictions, axis=0)
 
         label_encoder = LabelEncoder()
         test_labels = label_encoder.fit_transform(y_test)
 
-        predicted_classes = np.argmax(max_pred_0, axis=1)
-        confidence = np.max(max_pred_0, axis=1)
+        predicted_classes = np.argmax(prediction_proba, axis=1)
+        # confidence = np.max(max_pred_0, axis=1)
 
-        entr = entropy(test_labels, max_pred_0)
+        entr = entropy(test_labels, prediction_proba)
         print("Entropy: ", entr)
 
         # plot and evaluate
         plot_confusion_and_evaluate(predicted_classes, test_labels, subject_id, save=True)
-        evaluate_uncertainty(predicted_classes, test_labels, confidence, subject_id)
-        plot_calibration(predicted_classes, test_labels, confidence, subject_id, save=True)
+        evaluate_uncertainty(predicted_classes, test_labels, prediction_proba, subject_id)
+        plot_calibration(predicted_classes, test_labels, prediction_proba, subject_id, save=True)
 
 
 

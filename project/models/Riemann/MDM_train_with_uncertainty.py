@@ -1,6 +1,7 @@
 from moabb.datasets import BNCI2014_001
 from pyriemann.estimation import Covariances
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import compute_sample_weight
 from sklearn.utils.extmath import softmax
 
@@ -47,12 +48,16 @@ def main():
 
         prediction_proba = softmax(distances / temperature)
 
-        confidence = np.max(prediction_proba, axis=1)
+        # confidence = np.max(prediction_proba, axis=1)
+
+        label_encoder = LabelEncoder()
+        test_labels = label_encoder.fit_transform(y_test)
+        predictions = label_encoder.fit_transform(y_pred)
 
         # plot and evaluate
-        plot_confusion_and_evaluate(y_pred, y_test, subject_id, save=True)
-        evaluate_uncertainty(y_pred, y_test, confidence, subject_id)
-        plot_calibration(y_pred, y_test, confidence, subject_id, save=True)
+        plot_confusion_and_evaluate(predictions, test_labels, subject_id, save=True)
+        evaluate_uncertainty(predictions, test_labels, prediction_proba, subject_id)
+        plot_calibration(predictions, test_labels, prediction_proba, subject_id, save=True)
 
 
 if __name__ == '__main__':

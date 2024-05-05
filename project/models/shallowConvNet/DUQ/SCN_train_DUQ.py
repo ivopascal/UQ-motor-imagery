@@ -6,7 +6,8 @@ from sklearn.utils.extmath import softmax
 from sklearn.preprocessing import LabelEncoder, normalize
 from keras.utils import np_utils
 
-from project.Utils.evaluate_and_plot import plot_confusion_and_evaluate, evaluate_uncertainty, plot_calibration
+from project.Utils.evaluate_and_plot import plot_confusion_and_evaluate, evaluate_uncertainty, plot_calibration, \
+    brier_score
 from project.Utils.load_data import load_data
 from project.Utils.uncertainty_utils import find_best_temperature
 from project.models.shallowConvNet.DUQ.SCN_model_DUQ import ShallowConvNet
@@ -75,15 +76,15 @@ def main():
 
         prediction_proba = softmax(distances / temperature)
 
-        confidence = np.max(prediction_proba, axis=1)
+        # confidence = np.max(prediction_proba, axis=1)
 
         entr = entropy(test_labels, predictions)
         print("Entropy: ", entr)
 
         # plot and evaluate
         plot_confusion_and_evaluate(predicted_classes, test_labels, subject_id, save=True)
-        evaluate_uncertainty(predicted_classes, test_labels, confidence, subject_id)
-        plot_calibration(predicted_classes, test_labels, confidence, subject_id, save=True)
+        evaluate_uncertainty(predicted_classes, test_labels, prediction_proba, subject_id)
+        plot_calibration(predicted_classes, test_labels, prediction_proba, subject_id, save=True)
 
 
 

@@ -31,24 +31,58 @@ def plot_confusion_and_evaluate(y_pred, y_true, subject_id, save=True):
     return
 
 
-def evaluate_uncertainty(y_predictions, y_test, confidence, subject_id):
+def brier_score(confidences, true_labels):
+    """
+    This functions is based on the function of the Keras uncertainty library by Matias Valdenegro-toro:
+    https://github.com/mvaldenegro/keras-uncertainty/blob/4269ad3a043485273582bdf23b7ad8d82b41e216/keras_uncertainty/losses.py
+
+    Calculate the Brier score for multi-class classification.
+
+    Parameters:
+    - predictions: a 2D numpy array where each row contains predicted probabilities for each class.
+    - true_labels: a 1D numpy array where each element is the integer label of the true class (0 to 3 for four classes).
+
+    Returns:
+    - The Brier score for the provided predictions and true labels.
+    """
+    # confidences will be a 2d array in which every array contains of the confidences for all possible classes
+    if confidences.ndim != 2:
+        raise ValueError("Predictions array must be two-dimensional, got: ", confidences.ndim)
+
+    if len(confidences) != len(true_labels):
+        raise ValueError("The length of predictions must match the length of true labels")
+
+    true_probabilities = np.zeros_like(confidences)
+
+    # Assign 1 to the index of the true class, true_labels is 1d array with the prediction i.e. [1, 3, 0, 2, 1 etc.]
+    true_probabilities[np.arange(len(true_labels)), true_labels] = 1
+
+    return np.mean(np.square(confidences - true_probabilities))
+
+
+def evaluate_uncertainty(y_predictions, y_test, confidences, subject_id):
     f = open(f"./results/evaluation_subject{subject_id}.txt", "a")
 
-    overall_confidence = np.mean(confidence)
+    prediction_confidences = np.max(confidences, axis=1)
+
+    overall_confidence = np.mean(prediction_confidences)
     f.write(f"Overall Confidence {subject_id}: {overall_confidence}\n")
 
-    ece = calibration.get_ece(y_predictions, y_test, confidence)
+    brier = brier_score(confidences, y_test)
+    f.write(f'Brier score subject{subject_id}: {brier}\n')
+
+    ece = calibration.get_ece(y_predictions, y_test, prediction_confidences)
     f.write(f"ECE {subject_id}: {ece}\n")
 
-    mce = calibration.get_mce(y_predictions, y_test, confidence)
+    mce = calibration.get_mce(y_predictions, y_test, prediction_confidences)
     f.write(f"MCE {subject_id}: {mce}\n")
 
-    nce = calibration.get_nce(y_predictions, y_test, confidence)
+    nce = calibration.get_nce(y_predictions, y_test, prediction_confidences)
     f.write(f"NCE {subject_id}: {nce}\n")
 
 
-def plot_calibration(y_predictions, y_test, confidence, subject_id, save=True):
-    calibration.plot_calibration_curve(y_predictions, y_test, confidence, subject_id, save)
+def plot_calibration(y_predictions, y_test, confidences, subject_id, save=True):
+    prediction_confidences = np.max(confidences, axis=1)
+    calibration.plot_calibration_curve(y_predictions, y_test, prediction_confidences, subject_id, save)
     plt.clf()
     return
-
