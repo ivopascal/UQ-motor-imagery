@@ -61,12 +61,7 @@ class ShallowConvNet:
     original paper with minor deviations.
     """
 
-    def build(self):
-        nb_classes = 4  # todo change this later to be better programming style
-        Chans = 22
-        Samples = 1001
-        dropoutRate = 0.5
-
+    def build(self, nb_classes, Chans=22, Samples=1001, dropoutRate=0.5):
         model = keras.models.Sequential()
 
         # model.add(Input((Chans, Samples, 1)))

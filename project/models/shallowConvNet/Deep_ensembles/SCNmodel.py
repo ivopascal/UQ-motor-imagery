@@ -16,7 +16,7 @@ def log(x):
     return K.log(K.clip(x, min_value = 1e-7, max_value = 10000))
 
 
-def ShallowConvNet(nb_classes, Chans=64, Samples=128, dropoutRate=0.5):
+def ShallowConvNet(nb_classes, Chans=22, Samples=1001, dropoutRate=0.5):
     """ Keras implementation of the Shallow Convolutional Network as described
     in Schirrmeister et. al. (2017), Human Brain Mapping.
 

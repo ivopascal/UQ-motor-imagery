@@ -1,14 +1,15 @@
 from keras.callbacks import EarlyStopping
 from keras_uncertainty.utils import entropy
 from moabb.datasets import BNCI2014_001
-from moabb.paradigms import MotorImagery
 from sklearn.model_selection import train_test_split
 from sklearn.utils.extmath import softmax
 from sklearn.preprocessing import LabelEncoder, normalize
 from keras.utils import np_utils
 
-from project.Utils.evaluate_and_plot import plot_confusion_and_evaluate, evaluate_uncertainty, plot_calibration
+from project.Utils.evaluate_and_plot import plot_confusion_and_evaluate, evaluate_uncertainty, plot_calibration, \
+    brier_score
 from project.Utils.load_data import load_data
+from project.Utils.uncertainty_utils import find_best_temperature
 from project.models.shallowConvNet.DUQ.SCN_model_DUQ import ShallowConvNet
 
 import numpy as np
@@ -50,13 +51,13 @@ def main():
         y_categorical = np_utils.to_categorical(y_integers, num_classes=num_unique_labels)
 
         net = ShallowConvNet()
-        model = net.build()
+        model = net.build(nb_classes=n_classes, Chans=22, Samples=1001, dropoutRate=0.5)
 
         # weights = compute_sample_weight('balanced', y=y_train)
         model.fit(      # train the model
             X_train,
             y_categorical,
-            callbacks=[early_stopping],     # early stopping seems to work worse with DUQ, it needs long to train it seems
+            callbacks=[early_stopping],
             epochs=200, batch_size=64, validation_split=0.1 #, sample_weight=weights
             ,verbose=1,
         )
@@ -69,22 +70,21 @@ def main():
 
         predicted_classes = np.argmax(predictions, axis=1)
 
-        # Calculate probabilities to determine the confidence of the model
+        # Calculate probabilities with a softmax using a temperature to determine the confidence of the model
         distances = normalize(predictions, axis=1, norm='l1')
-        temperature = 0.3            # This best followed the accuracy and F1 scores
-        # todo temperature laten fitten op data elke keer
+        temperature = find_best_temperature(predicted_classes, test_labels, distances)
 
         prediction_proba = softmax(distances / temperature)
 
-        confidence = np.max(prediction_proba, axis=1)
+        # confidence = np.max(prediction_proba, axis=1)
 
         entr = entropy(test_labels, predictions)
         print("Entropy: ", entr)
 
         # plot and evaluate
         plot_confusion_and_evaluate(predicted_classes, test_labels, subject_id, save=True)
-        evaluate_uncertainty(predicted_classes, test_labels, confidence, subject_id)
-        plot_calibration(predicted_classes, test_labels, confidence, subject_id, save=True)
+        evaluate_uncertainty(predicted_classes, test_labels, prediction_proba, subject_id)
+        plot_calibration(predicted_classes, test_labels, prediction_proba, subject_id, save=True)
 
 
 
