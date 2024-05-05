@@ -2,6 +2,8 @@ data
 graphs
 example
 project/preprocessing/Oudated
+results
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

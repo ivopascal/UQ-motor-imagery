@@ -209,3 +209,4 @@ class MDM(BaseEstimator, ClassifierMixin, TransformerMixin):
             """
         return softmax(self._predict_distances(X) / temperature)
 
+

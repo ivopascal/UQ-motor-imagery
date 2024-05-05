@@ -1,11 +1,13 @@
 from moabb.datasets import BNCI2014_001
-from moabb.paradigms import MotorImagery
 from pyriemann.estimation import Covariances
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import compute_sample_weight
+from sklearn.utils.extmath import softmax
 
 from project.Utils.evaluate_and_plot import evaluate_uncertainty, plot_confusion_and_evaluate, plot_calibration
 from project.Utils.load_data import load_data
+from project.Utils.uncertainty_utils import find_best_temperature
 from project.models.Riemann.MDM_model_with_uncertainty import MDM
 
 import numpy as np
@@ -41,16 +43,21 @@ def main():
         y_pred = model.predict(X_test)
 
         # Determine the confidence of the model
-        # prediction_proba = model.predict_proba(X_test) # dit geeft net aan iets betere waardes maar weinig verschil
-        prediction_proba = model.predict_proba_temperature(X_test, 0.2) # dit is meer zoals DUQ gedaan is
-        # todo temperature laten fitten op data elke keer
+        distances = model.transform(X_test)
+        temperature = find_best_temperature(y_pred, y_test, distances)
 
-        confidence = np.max(prediction_proba, axis=1)
+        prediction_proba = softmax(distances / temperature)
+
+        # confidence = np.max(prediction_proba, axis=1)
+
+        label_encoder = LabelEncoder()
+        test_labels = label_encoder.fit_transform(y_test)
+        predictions = label_encoder.fit_transform(y_pred)
 
         # plot and evaluate
-        plot_confusion_and_evaluate(y_pred, y_test, subject_id, save=True)
-        evaluate_uncertainty(y_pred, y_test, confidence, subject_id)
-        plot_calibration(y_pred, y_test, confidence, subject_id, save=True)
+        plot_confusion_and_evaluate(predictions, test_labels, subject_id, save=True)
+        evaluate_uncertainty(predictions, test_labels, prediction_proba, subject_id)
+        plot_calibration(predictions, test_labels, prediction_proba, subject_id, save=True)
 
 
 if __name__ == '__main__':
