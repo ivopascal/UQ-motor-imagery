@@ -32,6 +32,8 @@ def main():
     datasets = [dataset1, dataset2]
     n_classes = [5, 4]      # dit kan nog door unique labels of y te checken
 
+    # todo n_classes door unique labels bepalen en dan overal implementeren
+
     for dataset, num_class in zip(datasets, n_classes):
         num_subjects = len(dataset.subject_list)
         for subject_id in tqdm(range(1, num_subjects + 1)):

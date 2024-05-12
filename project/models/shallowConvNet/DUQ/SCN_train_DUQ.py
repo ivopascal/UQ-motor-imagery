@@ -21,11 +21,6 @@ warnings.filterwarnings('ignore', category=FutureWarning)
 
 
 def main():
-    dataset = BNCI2014_001()
-    n_classes = 4
-
-    datasets = [dataset]
-
     early_stopping = EarlyStopping(
         monitor='val_loss',
         patience=20,  # Number of epochs with no improvement
@@ -41,7 +36,7 @@ def main():
     channels = [15, 22]        # dit moet echt op deze manier denk ik
     samples_data = [2561, 1001]     # dit ook ben ik bang
 
-    # todo testen of dit werkt en dan voor MDM en DUQ aanpassen dat n_classes niet in zo'n zip hoeft
+    # todo testen of dit werkt en dan voor MDM en DUQ en Deep ensembles aanpassen dat n_classes niet in zo'n zip hoeft
 
     for dataset, num_class, chans, samples in zip(datasets, n_classes, channels, samples_data):
         num_subjects = len(dataset.subject_list)
@@ -95,9 +90,14 @@ def main():
             print("Entropy: ", entr)
 
             # plot and evaluate
-            plot_confusion_and_evaluate(predicted_classes, test_labels, subject_id, dataset_id=dataset_id, save=True)
-            evaluate_uncertainty(predicted_classes, test_labels, prediction_proba, subject_id, dataset_id=dataset_id)
-            plot_calibration(predicted_classes, test_labels, prediction_proba, subject_id, dataset_id=dataset_id, save=True)
+            plot_confusion_and_evaluate(predicted_classes, test_labels,
+                                        subject_id=subject_id, dataset_id=dataset_id, save=True)
+
+            evaluate_uncertainty(predicted_classes, test_labels, prediction_proba,
+                                 subject_id=subject_id, dataset_id=dataset_id)
+
+            plot_calibration(predicted_classes, test_labels, prediction_proba,
+                             subject_id=subject_id, dataset_id=dataset_id, save=True)
 
 
 
