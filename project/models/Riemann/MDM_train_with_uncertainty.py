@@ -1,4 +1,5 @@
-from moabb.datasets import BNCI2014_001, BNCI2014_004
+from moabb.datasets import BNCI2014_001, BNCI2014_002
+from moabb.paradigms import MotorImagery
 from pyriemann.estimation import Covariances
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
@@ -19,17 +20,22 @@ warnings.filterwarnings('ignore', category=FutureWarning)
 
 
 def main():
-    dataset1 = BNCI2014_001()
-    dataset2 = BNCI2014_004()
+
+    # paradigm = MotorImagery()
+    # print(paradigm.datasets)
+    #
+    # exit()
+
+    dataset1 = BNCI2014_002()
+    dataset2 = BNCI2014_001()
 
     datasets = [dataset1, dataset2]
-    n_classes = [4, 5]
+    n_classes = [2, 4]
 
     for dataset, num_class in zip(datasets, n_classes):
-        print("Num class: ", num_class)
         num_subjects = len(dataset.subject_list)
         for subject_id in tqdm(range(1, num_subjects + 1)):
-            dataset_id = datasets.index(dataset)
+            dataset_id = datasets.index(dataset) + 1
 
             X, y, metadata = load_data(dataset, subject_id, num_class)
 
@@ -60,9 +66,14 @@ def main():
             predictions = label_encoder.fit_transform(y_pred)
 
             # plot and evaluate
-            plot_confusion_and_evaluate(predictions, test_labels, subject_id, dataset_id, save=True)
-            evaluate_uncertainty(predictions, test_labels, prediction_proba, subject_id, dataset_id)
-            plot_calibration(predictions, test_labels, prediction_proba, subject_id, dataset_id, save=True)
+            plot_confusion_and_evaluate(predictions, test_labels,
+                                        subject_id= subject_id, dataset_id=dataset_id, save=True)
+
+            evaluate_uncertainty(predictions, test_labels, prediction_proba,
+                                 subject_id=subject_id, dataset_id=dataset_id)
+
+            plot_calibration(predictions, test_labels, prediction_proba,
+                             subject_id=subject_id, dataset_id=dataset_id, save=True)
 
 
 if __name__ == '__main__':
