@@ -7,8 +7,8 @@ import seaborn as sns
 import numpy as np
 
 
-def plot_confusion_and_evaluate(y_pred, y_true, subject_id, save=True):
-    f = open(f"./results/evaluation_subject{subject_id}.txt", "w")
+def plot_confusion_and_evaluate(y_pred, y_true, subject_id, dataset_id, save=True):
+    f = open(f"./results/dataset{dataset_id}/evaluation_subject{subject_id}.txt", "w")
 
     accuracy = accuracy_score(y_true, y_pred)
     f.write(f"Subject {subject_id} Validation accuracy: {accuracy}\n")
@@ -22,7 +22,7 @@ def plot_confusion_and_evaluate(y_pred, y_true, subject_id, save=True):
     plt.ylabel("True Labels")
     plt.title(f"Confusion Matrix subject {subject_id}")
     if save:
-        plt.savefig(f"./graphs/confusion_plots/confusion_subject{subject_id}.png")
+        plt.savefig(f"./graphs/confusion_plots/dataset{dataset_id}/confusion_subject{subject_id}.png")
     # else:
     plt.show()
     plt.clf()
@@ -60,8 +60,8 @@ def brier_score(confidences, true_labels):
     return np.mean(np.square(confidences - true_probabilities))
 
 
-def evaluate_uncertainty(y_predictions, y_test, confidences, subject_id):
-    f = open(f"./results/evaluation_subject{subject_id}.txt", "a")
+def evaluate_uncertainty(y_predictions, y_test, confidences, subject_id, dataset_id):
+    f = open(f"./results/dataset{dataset_id}/evaluation_subject{subject_id}.txt", "a")
 
     prediction_confidences = np.max(confidences, axis=1)
 
@@ -81,8 +81,9 @@ def evaluate_uncertainty(y_predictions, y_test, confidences, subject_id):
     f.write(f"NCE {subject_id}: {nce}\n")
 
 
-def plot_calibration(y_predictions, y_test, confidences, subject_id, save=True):
+def plot_calibration(y_predictions, y_test, confidences, subject_id, dataset_id,save=True):
     prediction_confidences = np.max(confidences, axis=1)
-    calibration.plot_calibration_curve(y_predictions, y_test, prediction_confidences, subject_id, save)
+    calibration.plot_calibration_curve(y_predictions, y_test, prediction_confidences,
+                                       subject_id=subject_id, dataset_id=dataset_id, save=save)
     plt.clf()
     return

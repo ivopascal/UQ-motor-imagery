@@ -1,4 +1,5 @@
-from moabb.datasets import BNCI2014_001
+from moabb.datasets import BNCI2014_001, BNCI2015_004
+from moabb.paradigms import MotorImagery
 from pyriemann.estimation import Covariances
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
@@ -19,45 +20,62 @@ warnings.filterwarnings('ignore', category=FutureWarning)
 
 
 def main():
-    dataset = BNCI2014_001()
-    n_classes = 4
 
-    # datasets = [dataset]
+    # paradigm = MotorImagery()
+    # print(paradigm.datasets)
+    #
+    # exit()
 
-    num_subjects = len(dataset.subject_list)
-    for subject_id in tqdm(range(1, num_subjects + 1)):
-        X, y, metadata = load_data(dataset, subject_id, n_classes)
+    dataset1 = BNCI2015_004()       # check if this one also works
+    dataset2 = BNCI2014_001()       # original one
 
-        # Compute covariance matrices from the raw EEG signals
-        cov_estimator = Covariances(estimator='lwf')
-        X_cov = cov_estimator.fit_transform(X)
+    datasets = [dataset1, dataset2]
+    n_classes = [5, 4]      # dit kan nog door unique labels of y te checken
 
-        X_train, X_test, y_train, y_test = train_test_split(X_cov, y, test_size=0.2, random_state=42)
-        weights = compute_sample_weight('balanced', y=y_train)
+    # todo n_classes door unique labels bepalen en dan overal implementeren
 
-        model = MDM(metric=dict(mean='riemann', distance='riemann'))
+    for dataset, num_class in zip(datasets, n_classes):
+        num_subjects = len(dataset.subject_list)
+        for subject_id in tqdm(range(1, num_subjects + 1)):
+            dataset_id = datasets.index(dataset) + 1
 
-        model.fit(X_train, y_train, sample_weight=weights)
+            X, y, metadata = load_data(dataset, subject_id, num_class)
 
-        # Predict the labels for the test set
-        y_pred = model.predict(X_test)
+            # Compute covariance matrices from the raw EEG signals
+            cov_estimator = Covariances(estimator='lwf')
+            X_cov = cov_estimator.fit_transform(X)
 
-        # Determine the confidence of the model
-        distances = model.transform(X_test)
-        temperature = find_best_temperature(y_pred, y_test, distances)
+            X_train, X_test, y_train, y_test = train_test_split(X_cov, y, test_size=0.2, random_state=42)
+            weights = compute_sample_weight('balanced', y=y_train)
 
-        prediction_proba = softmax(distances / temperature)
+            model = MDM(metric=dict(mean='riemann', distance='riemann'))
 
-        # confidence = np.max(prediction_proba, axis=1)
+            model.fit(X_train, y_train, sample_weight=weights)
 
-        label_encoder = LabelEncoder()
-        test_labels = label_encoder.fit_transform(y_test)
-        predictions = label_encoder.fit_transform(y_pred)
+            # Predict the labels for the test set
+            y_pred = model.predict(X_test)
 
-        # plot and evaluate
-        plot_confusion_and_evaluate(predictions, test_labels, subject_id, save=True)
-        evaluate_uncertainty(predictions, test_labels, prediction_proba, subject_id)
-        plot_calibration(predictions, test_labels, prediction_proba, subject_id, save=True)
+            # Determine the confidence of the model
+            distances = model.transform(X_test)
+            temperature = find_best_temperature(y_pred, y_test, distances)
+
+            prediction_proba = softmax(distances / temperature)
+
+            # confidence = np.max(prediction_proba, axis=1)
+
+            label_encoder = LabelEncoder()
+            test_labels = label_encoder.fit_transform(y_test)
+            predictions = label_encoder.fit_transform(y_pred)
+
+            # plot and evaluate
+            plot_confusion_and_evaluate(predictions, test_labels,
+                                        subject_id= subject_id, dataset_id=dataset_id, save=True)
+
+            evaluate_uncertainty(predictions, test_labels, prediction_proba,
+                                 subject_id=subject_id, dataset_id=dataset_id)
+
+            plot_calibration(predictions, test_labels, prediction_proba,
+                             subject_id=subject_id, dataset_id=dataset_id, save=True)
 
 
 if __name__ == '__main__':
