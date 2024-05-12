@@ -30,9 +30,10 @@ def main():
     dataset2 = BNCI2014_001()       # original one
 
     datasets = [dataset1, dataset2]
-    n_classes = [5, 4]      # dit kan nog door unique labels of y te checken
 
-    # todo n_classes door unique labels bepalen en dan overal implementeren
+    n_classes = [5, 4]
+    # This unfortunately cannot really be done more elegantly, because the paradigm to get the data needs
+    #   the number of classes, and the dataset not the dict of get_data can get the number of classes
 
     for dataset, num_class in zip(datasets, n_classes):
         num_subjects = len(dataset.subject_list)

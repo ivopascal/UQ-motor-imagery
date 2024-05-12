@@ -30,13 +30,16 @@ def main():
     dataset2 = BNCI2014_001()  # original one
 
     datasets = [dataset1, dataset2]
-    n_classes = [2, 4]  # dit kan nog door unique labels of y te checken
-    channels = [15, 22]  # dit moet echt op deze manier denk ik
-    samples_data = [2561, 1001]  # dit ook ben ik bang
+    n_classes = [2, 4]
+    # This unfortunately cannot really be done more elegantly, because the paradigm to get the data needs
+    #   the number of classes, and the dataset not the dict of get_data can get the number of classes
+
+    channels = [15, 22]  # The same holds here
+    samples_data = [2561, 1001]
 
     num_models = 5
 
-    # todo testen of dit werkt en dan voor MDM en DUQ en Deep ensembles aanpassen dat n_classes niet in zo'n zip hoeft
+    # todo testen of dit werkt 
 
     for dataset, num_class, chans, samples in zip(datasets, n_classes, channels, samples_data):
         num_subjects = len(dataset.subject_list)
