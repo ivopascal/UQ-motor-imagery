@@ -1,4 +1,4 @@
-from moabb.datasets import BNCI2014_001
+from moabb.datasets import BNCI2014_001, BNCI2014_004
 from pyriemann.estimation import Covariances
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
@@ -19,45 +19,50 @@ warnings.filterwarnings('ignore', category=FutureWarning)
 
 
 def main():
-    dataset = BNCI2014_001()
-    n_classes = 4
+    dataset1 = BNCI2014_001()
+    dataset2 = BNCI2014_004()
 
-    # datasets = [dataset]
+    datasets = [dataset1, dataset2]
+    n_classes = [4, 5]
 
-    num_subjects = len(dataset.subject_list)
-    for subject_id in tqdm(range(1, num_subjects + 1)):
-        X, y, metadata = load_data(dataset, subject_id, n_classes)
+    for dataset, num_class in zip(datasets, n_classes):
+        print("Num class: ", num_class)
+        num_subjects = len(dataset.subject_list)
+        for subject_id in tqdm(range(1, num_subjects + 1)):
+            dataset_id = datasets.index(dataset)
 
-        # Compute covariance matrices from the raw EEG signals
-        cov_estimator = Covariances(estimator='lwf')
-        X_cov = cov_estimator.fit_transform(X)
+            X, y, metadata = load_data(dataset, subject_id, num_class)
 
-        X_train, X_test, y_train, y_test = train_test_split(X_cov, y, test_size=0.2, random_state=42)
-        weights = compute_sample_weight('balanced', y=y_train)
+            # Compute covariance matrices from the raw EEG signals
+            cov_estimator = Covariances(estimator='lwf')
+            X_cov = cov_estimator.fit_transform(X)
 
-        model = MDM(metric=dict(mean='riemann', distance='riemann'))
+            X_train, X_test, y_train, y_test = train_test_split(X_cov, y, test_size=0.2, random_state=42)
+            weights = compute_sample_weight('balanced', y=y_train)
 
-        model.fit(X_train, y_train, sample_weight=weights)
+            model = MDM(metric=dict(mean='riemann', distance='riemann'))
 
-        # Predict the labels for the test set
-        y_pred = model.predict(X_test)
+            model.fit(X_train, y_train, sample_weight=weights)
 
-        # Determine the confidence of the model
-        distances = model.transform(X_test)
-        temperature = find_best_temperature(y_pred, y_test, distances)
+            # Predict the labels for the test set
+            y_pred = model.predict(X_test)
 
-        prediction_proba = softmax(distances / temperature)
+            # Determine the confidence of the model
+            distances = model.transform(X_test)
+            temperature = find_best_temperature(y_pred, y_test, distances)
 
-        # confidence = np.max(prediction_proba, axis=1)
+            prediction_proba = softmax(distances / temperature)
 
-        label_encoder = LabelEncoder()
-        test_labels = label_encoder.fit_transform(y_test)
-        predictions = label_encoder.fit_transform(y_pred)
+            # confidence = np.max(prediction_proba, axis=1)
 
-        # plot and evaluate
-        plot_confusion_and_evaluate(predictions, test_labels, subject_id, save=True)
-        evaluate_uncertainty(predictions, test_labels, prediction_proba, subject_id)
-        plot_calibration(predictions, test_labels, prediction_proba, subject_id, save=True)
+            label_encoder = LabelEncoder()
+            test_labels = label_encoder.fit_transform(y_test)
+            predictions = label_encoder.fit_transform(y_pred)
+
+            # plot and evaluate
+            plot_confusion_and_evaluate(predictions, test_labels, subject_id, dataset_id, save=True)
+            evaluate_uncertainty(predictions, test_labels, prediction_proba, subject_id, dataset_id)
+            plot_calibration(predictions, test_labels, prediction_proba, subject_id, dataset_id, save=True)
 
 
 if __name__ == '__main__':

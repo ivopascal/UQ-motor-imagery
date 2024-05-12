@@ -25,6 +25,7 @@ def _mode_2d(X, axis=1):
     mode = np.apply_along_axis(_mode_1d, axis, X)
     return mode
 
+
 class MDM(BaseEstimator, ClassifierMixin, TransformerMixin):
     r"""Classification by Minimum Distance to Mean.
 
@@ -137,7 +138,7 @@ class MDM(BaseEstimator, ClassifierMixin, TransformerMixin):
         else:
             dist = Parallel(n_jobs=self.n_jobs)(delayed(distance)(
                 X, self.covmeans_[m], self.metric_dist)
-                for m in range(n_centroids))
+                                                for m in range(n_centroids))
 
         dist = np.concatenate(dist, axis=1)
         return dist
@@ -208,5 +209,3 @@ class MDM(BaseEstimator, ClassifierMixin, TransformerMixin):
                 Probabilities for each class.
             """
         return softmax(self._predict_distances(X) / temperature)
-
-
