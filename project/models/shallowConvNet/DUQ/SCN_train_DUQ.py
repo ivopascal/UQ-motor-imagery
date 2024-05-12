@@ -41,6 +41,8 @@ def main():
     channels = [15, 22]        # dit moet echt op deze manier denk ik
     samples_data = [2561, 1001]     # dit ook ben ik bang
 
+    # todo testen of dit werkt en dan voor MDM en DUQ aanpassen dat n_classes niet in zo'n zip hoeft
+
     for dataset, num_class, chans, samples in zip(datasets, n_classes, channels, samples_data):
         num_subjects = len(dataset.subject_list)
         for subject_id in tqdm(range(1, num_subjects + 1)):       # loop to take data and make model per subject
