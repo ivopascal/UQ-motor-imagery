@@ -1,4 +1,4 @@
-from moabb.datasets import BNCI2014_001, BNCI2014_002
+from moabb.datasets import BNCI2014_001, BNCI2015_004
 from moabb.paradigms import MotorImagery
 from pyriemann.estimation import Covariances
 from sklearn.model_selection import train_test_split
@@ -26,11 +26,11 @@ def main():
     #
     # exit()
 
-    dataset1 = BNCI2014_002()
-    dataset2 = BNCI2014_001()
+    dataset1 = BNCI2015_004()       # check if this one also works
+    dataset2 = BNCI2014_001()       # original one
 
     datasets = [dataset1, dataset2]
-    n_classes = [2, 4]
+    n_classes = [5, 4]      # dit kan nog door unique labels of y te checken
 
     for dataset, num_class in zip(datasets, n_classes):
         num_subjects = len(dataset.subject_list)
