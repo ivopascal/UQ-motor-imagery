@@ -23,8 +23,8 @@ def plot_confusion_and_evaluate(y_pred, y_true, subject_id, dataset_id, save=Tru
     plt.title(f"Confusion Matrix subject {subject_id}")
     if save:
         plt.savefig(f"./graphs/confusion_plots/dataset{dataset_id}/confusion_subject{subject_id}.png")
-    # else:
-    plt.show()
+    else:
+        plt.show()
     plt.clf()
 
     f.close()

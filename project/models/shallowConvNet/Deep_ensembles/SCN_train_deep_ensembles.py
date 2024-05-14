@@ -1,6 +1,6 @@
 from keras.callbacks import EarlyStopping
 from keras.optimizers import Adam
-from moabb.datasets import BNCI2014_001, BNCI2014_002
+from moabb.datasets import BNCI2014_001, BNCI2014_002, Zhou2016, BNCI2014_004
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from keras.utils import np_utils
@@ -26,16 +26,20 @@ def main():
         restore_best_weights=True  # Restore model weights from the epoch with the best value of the monitored quantity
     )
 
-    dataset1 = BNCI2014_002()  # check if this one also works
-    dataset2 = BNCI2014_001()  # original one
+    dataset1 = BNCI2014_002()
+    dataset2 = Zhou2016()
+    dataset3 = BNCI2014_004()
+    dataset4 = BNCI2014_001()  # original one
 
-    datasets = [dataset1, dataset2]
-    n_classes = [2, 4]
+    datasets = [dataset1, dataset2, dataset3, dataset4]
+
+    n_classes = [2, 3, 2, 4]
+
     # This unfortunately cannot really be done more elegantly, because the paradigm to get the data needs
     #   the number of classes, and the dataset not the dict of get_data can get the number of classes
 
-    channels = [15, 22]  # The same holds here
-    samples_data = [2561, 1001]
+    channels = [15, 14, 3, 22]  # the same holds here
+    samples_data = [2560, 1251, 1126, 1001]
 
     num_models = 5
 

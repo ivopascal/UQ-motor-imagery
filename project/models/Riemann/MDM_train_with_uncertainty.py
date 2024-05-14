@@ -1,4 +1,5 @@
-from moabb.datasets import BNCI2014_001, BNCI2015_004
+from moabb.datasets import BNCI2014_001, BNCI2015_004, AlexMI, Zhou2016, BNCI2014_004, Schirrmeister2017, PhysionetMI, \
+    BNCI2014_002
 from moabb.paradigms import MotorImagery
 from pyriemann.estimation import Covariances
 from sklearn.model_selection import train_test_split
@@ -20,24 +21,21 @@ warnings.filterwarnings('ignore', category=FutureWarning)
 
 
 def main():
+    dataset1 = BNCI2014_002()
+    dataset2 = Zhou2016()
+    dataset3 = BNCI2014_004()
+    dataset4 = BNCI2014_001()       # original one
 
-    # paradigm = MotorImagery()
-    # print(paradigm.datasets)
-    #
-    # exit()
+    datasets = [dataset1, dataset2, dataset3, dataset4]
 
-    dataset1 = BNCI2015_004()       # check if this one also works
-    dataset2 = BNCI2014_001()       # original one
+    n_classes = [2, 3, 2, 4]
 
-    datasets = [dataset1, dataset2]
-
-    n_classes = [5, 4]
     # This unfortunately cannot really be done more elegantly, because the paradigm to get the data needs
     #   the number of classes, and the dataset not the dict of get_data can get the number of classes
 
     for dataset, num_class in zip(datasets, n_classes):
         num_subjects = len(dataset.subject_list)
-        for subject_id in tqdm(range(1, num_subjects + 1)):
+        for subject_id in range(1, num_subjects + 1):
             dataset_id = datasets.index(dataset) + 1
 
             X, y, metadata = load_data(dataset, subject_id, num_class)
