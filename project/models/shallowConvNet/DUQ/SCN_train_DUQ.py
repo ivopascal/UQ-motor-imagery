@@ -40,9 +40,7 @@ def main():
     #   the number of classes, and the dataset not the dict of get_data can get the number of classes
 
     channels = [15, 14, 3, 22]        # the same holds here
-    samples_data = [2560, 1251, 1126, 1001]
-
-    # todo testen of dit werkt
+    samples_data = [2561, 1251, 1126, 1001]
 
     for dataset, num_class, chans, samples in zip(datasets, n_classes, channels, samples_data):
         num_subjects = len(dataset.subject_list)
@@ -73,7 +71,7 @@ def main():
                 y_categorical,
                 callbacks=[early_stopping],
                 epochs=200, batch_size=64, validation_split=0.1 #, sample_weight=weights
-                ,verbose=1,
+                ,verbose=0,
             )
             # model.save(f'../saved_trained_models/SCN/PerSubject/subject{subject_id}')
 

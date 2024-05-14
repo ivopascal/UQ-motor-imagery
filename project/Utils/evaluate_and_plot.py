@@ -87,3 +87,5 @@ def plot_calibration(y_predictions, y_test, confidences, subject_id, dataset_id,
                                        subject_id=subject_id, dataset_id=dataset_id, save=save)
     plt.clf()
     return
+
+# todo toevoegen van een functie voor entropy bij de SCN modellen
