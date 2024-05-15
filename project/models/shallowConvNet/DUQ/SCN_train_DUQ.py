@@ -1,13 +1,12 @@
 from keras.callbacks import EarlyStopping
 from keras_uncertainty.utils import entropy
-from moabb.datasets import BNCI2014_001, BNCI2014_002
+from moabb.datasets import BNCI2014_001, BNCI2014_002, Zhou2016, BNCI2014_004
 from sklearn.model_selection import train_test_split
 from sklearn.utils.extmath import softmax
 from sklearn.preprocessing import LabelEncoder, normalize
 from keras.utils import np_utils
 
-from project.Utils.evaluate_and_plot import plot_confusion_and_evaluate, evaluate_uncertainty, plot_calibration, \
-    brier_score
+from project.Utils.evaluate_and_plot import plot_confusion_and_evaluate, evaluate_uncertainty, plot_calibration
 from project.Utils.load_data import load_data
 from project.Utils.uncertainty_utils import find_best_temperature
 from project.models.shallowConvNet.DUQ.SCN_model_DUQ import ShallowConvNet
@@ -28,15 +27,20 @@ def main():
         restore_best_weights=True  # Restore model weights from the epoch with the best value of the monitored quantity
     )
 
-    dataset1 = BNCI2014_002()  # check if this one also works
-    dataset2 = BNCI2014_001()  # original one
+    dataset1 = BNCI2014_002()
+    dataset2 = Zhou2016()
+    dataset3 = BNCI2014_004()
+    dataset4 = BNCI2014_001()  # original one
 
-    datasets = [dataset1, dataset2]
-    n_classes = [2, 4]      # dit kan nog door unique labels of y te checken
-    channels = [15, 22]        # dit moet echt op deze manier denk ik
-    samples_data = [2561, 1001]     # dit ook ben ik bang
+    datasets = [dataset1, dataset2, dataset3, dataset4]
 
-    # todo testen of dit werkt en dan voor MDM en DUQ en Deep ensembles aanpassen dat n_classes niet in zo'n zip hoeft
+    n_classes = [2, 3, 2, 4]
+
+    # This unfortunately cannot really be done more elegantly, because the paradigm to get the data needs
+    #   the number of classes, and the dataset not the dict of get_data can get the number of classes
+
+    channels = [15, 14, 3, 22]        # the same holds here
+    samples_data = [2561, 1251, 1126, 1001]
 
     for dataset, num_class, chans, samples in zip(datasets, n_classes, channels, samples_data):
         num_subjects = len(dataset.subject_list)
@@ -67,7 +71,7 @@ def main():
                 y_categorical,
                 callbacks=[early_stopping],
                 epochs=200, batch_size=64, validation_split=0.1 #, sample_weight=weights
-                ,verbose=1,
+                ,verbose=0,
             )
             # model.save(f'../saved_trained_models/SCN/PerSubject/subject{subject_id}')
 

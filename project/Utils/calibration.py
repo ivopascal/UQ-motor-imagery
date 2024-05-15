@@ -53,8 +53,8 @@ def plot_calibration_curve(y_pred, y_true, y_confidences, subject_id, dataset_id
     plt.title(f"Confusion Matrix subject {subject_id}")
     if save:
         plt.savefig(f"./graphs/calibration_plots/dataset{dataset_id}/calibration_subject{subject_id}.png")
-    # else:
-    plt.show()
+    else:
+        plt.show()
 
 
 def get_ece(y_pred, y_true, y_confidences, metric="mae", num_bins=10, weighted=False):
