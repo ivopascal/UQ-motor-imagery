@@ -37,7 +37,7 @@ def get_calibration_curve(y_pred, y_true, y_confidences, metric="mae", num_bins=
     return classifier_calibration_curve(y_pred, y_true, y_confidences, metric, num_bins)
 
 
-def plot_calibration_curve(y_pred, y_true, y_confidences, subject_id, metric="mae", num_bins=10, save=True):
+def plot_calibration_curve(y_pred, y_true, y_confidences, subject_id, dataset_id, metric="mae", num_bins=10, save=True):
     """
         Plots the calibration curve for a classifier.
         y_pred are the class predictions of the model (integers), while y_true is the ground truth labels (integers),
@@ -52,9 +52,9 @@ def plot_calibration_curve(y_pred, y_true, y_confidences, subject_id, metric="ma
     plt.ylabel("Accuracy")
     plt.title(f"Confusion Matrix subject {subject_id}")
     if save:
-        plt.savefig(f"./graphs/calibration_plots/calibration_subject{subject_id}.png")
-    # else:
-    plt.show()
+        plt.savefig(f"./graphs/calibration_plots/dataset{dataset_id}/calibration_subject{subject_id}.png")
+    else:
+        plt.show()
 
 
 def get_ece(y_pred, y_true, y_confidences, metric="mae", num_bins=10, weighted=False):
