@@ -8,18 +8,10 @@ from keras.constraints import max_norm
 from keras import backend as K
 
 from keras_uncertainty.layers import RBFClassifier
-# from keras_uncertainty.layers import add_l2_regularization
-
-
 from keras.regularizers import l2
 
 
-# Ik heb nu de structuur vergelijkbaar gemaakt aan hoe het is gedaan in: https://github.com/p-manivannan/UQ-Motor-Imagery/blob/main/
-# Dit was in de aangeraden paper van Ivo
-
-
-# het was nodig de functie van Matthias aan te passen :
-# ValueError: Expected a symbolic Tensors or a callable for the loss value. Please wrap your loss computation in a zero argument `lambda`.
+# Based on code by Matias Valdenegro Toro: https://github.com/mvaldenegro/keras-uncertainty
 def add_l2_regularization(model, l2_strength=1e-4):
     for layer in model.layers:
         if layer.trainable_weights:
