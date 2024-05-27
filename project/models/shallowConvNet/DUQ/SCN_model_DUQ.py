@@ -61,6 +61,8 @@ class ShallowConvNet:
     original paper with minor deviations.
     """
 
+    # todo checken of ik de strides en kernels enzo moet aanpassen op basis van de sampling rate (aantal HZ)f
+
     def build(self, nb_classes, Chans=22, Samples=1001, dropoutRate=0.5):
         model = keras.models.Sequential()
 

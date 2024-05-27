@@ -28,7 +28,7 @@ def main():
 
     dataset1 = BNCI2014_002()
     dataset2 = Zhou2016()
-    dataset3 = BNCI2014_004()
+    dataset3 = BNCI2014_004()       # the bad performing one, if done again, take in range, 3,4
     dataset4 = BNCI2014_001()  # original one
 
     datasets = [dataset1, dataset2, dataset3, dataset4]
@@ -39,11 +39,9 @@ def main():
     #   the number of classes, and the dataset not the dict of get_data can get the number of classes
 
     channels = [15, 14, 3, 22]  # the same holds here
-    samples_data = [2560, 1251, 1126, 1001]
+    samples_data = [2561, 1251, 1126, 1001]
 
-    num_models = 5
-
-    # todo testen of dit werkt 
+    num_models = 10
 
     for dataset, num_class, chans, samples in zip(datasets, n_classes, channels, samples_data):
         num_subjects = len(dataset.subject_list)
