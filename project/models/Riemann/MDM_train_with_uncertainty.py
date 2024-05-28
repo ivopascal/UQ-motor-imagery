@@ -71,7 +71,7 @@ def main():
                                         subject_id= subject_id, dataset_id=dataset_id, save=True)
 
             evaluate_uncertainty(predictions, test_labels, prediction_proba,
-                                 subject_id=subject_id, dataset_id=dataset_id)
+                                 subject_id=subject_id, dataset_id=dataset_id, save=True)
 
             plot_calibration(predictions, test_labels, prediction_proba,
                              subject_id=subject_id, dataset_id=dataset_id, save=True)

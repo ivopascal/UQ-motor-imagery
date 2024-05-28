@@ -76,7 +76,7 @@ def main():
                     X_train,
                     y_categorical,
                     callbacks=[early_stopping],
-                    epochs=100, batch_size=64, validation_split=0.1,   # sample_weight=weights,
+                    epochs=100, batch_size=64, validation_split=0.1,   # sample_weighTt=weights,
                     verbose=0,
                 )
 
@@ -100,7 +100,7 @@ def main():
                                         subject_id=subject_id, dataset_id=dataset_id, save=True)
 
             evaluate_uncertainty(predicted_classes, test_labels, prediction_proba,
-                                 subject_id=subject_id, dataset_id=dataset_id)
+                                 subject_id=subject_id, dataset_id=dataset_id, save=True)
 
             plot_calibration(predicted_classes, test_labels, prediction_proba,
                              subject_id=subject_id, dataset_id=dataset_id, save=True)

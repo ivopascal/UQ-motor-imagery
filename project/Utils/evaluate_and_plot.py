@@ -1,4 +1,3 @@
-
 from matplotlib import pyplot as plt
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 
@@ -61,28 +60,31 @@ def brier_score(confidences, true_labels):
     return np.mean(np.square(confidences - true_probabilities))
 
 
-def evaluate_uncertainty(y_predictions, y_test, confidences, subject_id, dataset_id):
-    f = open(f"./results/dataset{dataset_id}/evaluation_subject{subject_id}.txt", "a")
-
+def evaluate_uncertainty(y_predictions, y_test, confidences, subject_id, dataset_id, save=True):
     prediction_confidences = np.max(confidences, axis=1)
-
     overall_confidence = np.mean(prediction_confidences)
-    f.write(f"Overall Confidence {subject_id}: {overall_confidence}\n")
 
     brier = brier_score(confidences, y_test)
-    f.write(f'Brier score subject{subject_id}: {brier}\n')
 
     ece = calibration.get_ece(y_predictions, y_test, prediction_confidences)
-    f.write(f"ECE {subject_id}: {ece}\n")
-
     mce = calibration.get_mce(y_predictions, y_test, prediction_confidences)
-    f.write(f"MCE {subject_id}: {mce}\n")
-
     nce = calibration.get_nce(y_predictions, y_test, prediction_confidences)
-    f.write(f"NCE {subject_id}: {nce}\n")
 
+    if save:
+        f = open(f"./results/dataset{dataset_id}/evaluation_subject{subject_id}.txt", "a")
+        f.write(f"Overall Confidence {subject_id}: {overall_confidence}\n")
+        f.write(f'Brier score subject{subject_id}: {brier}\n')
+        f.write(f"ECE {subject_id}: {ece}\n")
+        f.write(f"MCE {subject_id}: {mce}\n")
+        f.write(f"NCE {subject_id}: {nce}\n")
+    else:
+        print(f"Overall Confidence {subject_id}: {overall_confidence}\n")
+        print(f'Brier score subject{subject_id}: {brier}\n')
+        print(f"ECE {subject_id}: {ece}\n")
+        print(f"MCE {subject_id}: {mce}\n")
+        print(f"NCE {subject_id}: {nce}\n")
 
-def plot_calibration(y_predictions, y_test, confidences, subject_id, dataset_id,save=True):
+def plot_calibration(y_predictions, y_test, confidences, subject_id, dataset_id, save=True):
     prediction_confidences = np.max(confidences, axis=1)
     calibration.plot_calibration_curve(y_predictions, y_test, prediction_confidences,
                                        subject_id=subject_id, dataset_id=dataset_id, save=save)

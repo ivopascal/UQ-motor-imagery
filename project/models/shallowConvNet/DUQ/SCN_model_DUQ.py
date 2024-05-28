@@ -63,7 +63,7 @@ class ShallowConvNet:
         model.add(Conv2D(40, (1, 25),  # since sampling rate is 250 so take the values of the original paper
                          input_shape=(Chans, Samples, 1),
                          kernel_constraint=max_norm(2., axis=(0, 1, 2)),
-                         # activation='linear', padding="SAME"       # This was used in the paper from Ivo look at results
+                         # activation='linear', padding="SAME"       # This was used in the paper from Ivo
                          ))
         model.add(Conv2D(40, (Chans, 1), use_bias=False,
                          # activation='linear', padding="SAME",
@@ -85,7 +85,7 @@ class ShallowConvNet:
 
         optimizer = Adam(learning_rate=0.01)  # standard 0.001      # todo need to tweek this
 
-        model.compile(loss="binary_crossentropy",
+        model.compile(loss="categorical_crossentropy",
                       optimizer=optimizer, metrics=["categorical_accuracy"])
 
         add_l2_regularization(model)
