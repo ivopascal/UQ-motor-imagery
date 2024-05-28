@@ -8,13 +8,10 @@ import numpy as np
 
 
 def plot_confusion_and_evaluate(y_pred, y_true, subject_id, dataset_id, save=True):
-    f = open(f"./results/dataset{dataset_id}/evaluation_subject{subject_id}.txt", "w")
 
     accuracy = accuracy_score(y_true, y_pred)
-    f.write(f"Subject {subject_id} Validation accuracy: {accuracy}\n")
 
     f1 = f1_score(y_true, y_pred, average='macro')
-    f.write(f'F1 score subject{subject_id}: {f1}\n')
 
     cm = confusion_matrix(y_true, y_pred)
     sns.heatmap(cm, annot=True, fmt="d", cmap="Blues")
@@ -23,11 +20,18 @@ def plot_confusion_and_evaluate(y_pred, y_true, subject_id, dataset_id, save=Tru
     plt.title(f"Confusion Matrix subject {subject_id}")
     if save:
         plt.savefig(f"./graphs/confusion_plots/dataset{dataset_id}/confusion_subject{subject_id}.png")
+        f = open(f"./results/dataset{dataset_id}/evaluation_subject{subject_id}.txt", "w")
+        f.write(f"Subject {subject_id} Validation accuracy: {accuracy}\n")
+        f.write(f'F1 score subject{subject_id}: {f1}\n')
+        f.close()
+
     else:
         plt.show()
+        print(f"Subject {subject_id} Validation accuracy: {accuracy}\n")
+        print(f'F1 score subject{subject_id}: {f1}\n')
+
     plt.clf()
 
-    f.close()
     return
 
 

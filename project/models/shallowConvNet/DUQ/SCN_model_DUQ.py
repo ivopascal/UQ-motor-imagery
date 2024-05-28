@@ -85,7 +85,7 @@ class ShallowConvNet:
 
         optimizer = Adam(learning_rate=0.01)  # standard 0.001      # todo need to tweek this
 
-        model.compile(loss="categorical_crossentropy",
+        model.compile(loss="binary_crossentropy",
                       optimizer=optimizer, metrics=["categorical_accuracy"])
 
         add_l2_regularization(model)
