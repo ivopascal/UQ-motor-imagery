@@ -97,13 +97,13 @@ def main():
 
             # plot and evaluate
             plot_confusion_and_evaluate(predicted_classes, test_labels,
-                                        subject_id=subject_id, dataset_id=dataset_id, save=True)
+                                        subject_id=subject_id, dataset_id=dataset_id, save=False)
 
             evaluate_uncertainty(predicted_classes, test_labels, prediction_proba,
-                                 subject_id=subject_id, dataset_id=dataset_id, save=True)
+                                 subject_id=subject_id, dataset_id=dataset_id, save=False)
 
             plot_calibration(predicted_classes, test_labels, prediction_proba,
-                             subject_id=subject_id, dataset_id=dataset_id, save=True)
+                             subject_id=subject_id, dataset_id=dataset_id, save=False)
 
 
 
