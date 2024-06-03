@@ -50,7 +50,7 @@ def plot_calibration_curve(y_pred, y_true, y_confidences, subject_id, dataset_id
     plt.plot([0, 1], [0, 1], color='black', alpha=0.2)
     plt.xlabel("Confidence")
     plt.ylabel("Accuracy")
-    plt.title(f"Confusion Matrix subject {subject_id}")
+    plt.title(f"Calibration Plot subject {subject_id}")
     if save:
         plt.savefig(f"./graphs/calibration_plots/dataset{dataset_id}/calibration_subject{subject_id}.png")
     else:
