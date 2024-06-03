@@ -27,7 +27,7 @@ def accuracy(y_true, y_pred):
     return np.mean(y_true == y_pred)
 
 
-def get_calibration_curve(y_pred, y_true, y_confidences, metric="mae", num_bins=10):
+def get_calibration_curve(y_pred, y_true, y_confidences, metric="mae", num_bins=5):
     """
         Estimates the calibration plot for a classifier and returns the points in the plot.
         y_pred are the class predictions of the model (integers), while y_true is the ground truth labels (integers),
@@ -67,7 +67,7 @@ def get_ece(y_pred, y_true, y_confidences, metric="mae", num_bins=10, weighted=F
     return classifier_calibration_error(y_pred, y_true, y_confidences, metric, num_bins, weighted)
 
 
-def get_mce(y_pred, y_true, y_confidences, metric="mae", num_bins=10, weighted=False):
+def get_mce(y_pred, y_true, y_confidences, num_bins=10, weighted=False):
     """
         Estimates Maximum calibration error for a classifier.
         y_pred are the class predictions of the model (integers), while y_true is the ground truth labels (integers),
@@ -105,7 +105,7 @@ def get_mce(y_pred, y_true, y_confidences, metric="mae", num_bins=10, weighted=F
     return np.max(errors)
 
 
-def get_nce(y_pred, y_true, y_confidences, metric="mae", num_bins=10, weighted=False):
+def get_nce(y_pred, y_true, y_confidences, num_bins=10, weighted=False):
     """
         Estimates Net calibration error for a classifier.
         The definition for Net calibration error can be found in the paper by Groot, T. (2024).

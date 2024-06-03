@@ -7,30 +7,6 @@ import seaborn as sns
 import numpy as np
 
 
-def plot_confusion_and_evaluate(y_pred, y_true, subject_id, dataset_id, save=True):
-    f = open(f"./results/dataset{dataset_id}/evaluation_subject{subject_id}.txt", "w")
-
-    accuracy = accuracy_score(y_true, y_pred)
-    f.write(f"Subject {subject_id} Validation accuracy: {accuracy}\n")
-
-    f1 = f1_score(y_true, y_pred, average='macro')
-    f.write(f'F1 score subject{subject_id}: {f1}\n')
-
-    cm = confusion_matrix(y_true, y_pred)
-    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues")
-    plt.xlabel("Predicted Labels")
-    plt.ylabel("True Labels")
-    plt.title(f"Confusion Matrix subject {subject_id}")
-    if save:
-        plt.savefig(f"./graphs/confusion_plots/dataset{dataset_id}/confusion_subject{subject_id}.png")
-    else:
-        plt.show()
-    plt.clf()
-
-    f.close()
-    return
-
-
 def brier_score(confidences, true_labels):
     """
     This functions is based on the function of the Keras uncertainty library by Matias Valdenegro-toro:
@@ -60,32 +36,63 @@ def brier_score(confidences, true_labels):
     return np.mean(np.square(confidences - true_probabilities))
 
 
-def evaluate_uncertainty(y_predictions, y_test, confidences, subject_id, dataset_id):
-    f = open(f"./results/dataset{dataset_id}/evaluation_subject{subject_id}.txt", "a")
+def plot_confusion_and_evaluate(y_pred, y_true, subject_id, dataset_id, save=True):
+    accuracy = accuracy_score(y_true, y_pred)
 
+    f1 = f1_score(y_true, y_pred, average='macro')
+
+    cm = confusion_matrix(y_true, y_pred)
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues")
+    plt.xlabel("Predicted Labels")
+    plt.ylabel("True Labels")
+    plt.title(f"Confusion Matrix subject {subject_id}")
+    if save:
+        plt.savefig(f"./graphs/confusion_plots/dataset{dataset_id}/confusion_subject{subject_id}.png")
+        f = open(f"./results/dataset{dataset_id}/evaluation_subject{subject_id}.txt", "w")
+        f.write(f"Subject {subject_id} Validation accuracy: {accuracy}\n")
+        f.write(f'F1 score subject{subject_id}: {f1}\n')
+        f.close()
+
+    else:
+        plt.show()
+        print(f"Subject {subject_id} Validation accuracy: {accuracy}\n")
+        print(f'F1 score subject{subject_id}: {f1}\n')
+
+    plt.clf()
+
+    return
+
+
+def evaluate_uncertainty(y_predictions, y_test, confidences, subject_id, dataset_id, save=True):
     prediction_confidences = np.max(confidences, axis=1)
-
     overall_confidence = np.mean(prediction_confidences)
-    f.write(f"Overall Confidence {subject_id}: {overall_confidence}\n")
 
     brier = brier_score(confidences, y_test)
-    f.write(f'Brier score subject{subject_id}: {brier}\n')
 
     ece = calibration.get_ece(y_predictions, y_test, prediction_confidences)
-    f.write(f"ECE {subject_id}: {ece}\n")
-
     mce = calibration.get_mce(y_predictions, y_test, prediction_confidences)
-    f.write(f"MCE {subject_id}: {mce}\n")
-
     nce = calibration.get_nce(y_predictions, y_test, prediction_confidences)
-    f.write(f"NCE {subject_id}: {nce}\n")
+
+    if save:
+        f = open(f"./results/dataset{dataset_id}/evaluation_subject{subject_id}.txt", "a")
+        f.write(f"Overall Confidence {subject_id}: {overall_confidence}\n")
+        f.write(f'Brier score subject{subject_id}: {brier}\n')
+        f.write(f"ECE {subject_id}: {ece}\n")
+        f.write(f"MCE {subject_id}: {mce}\n")
+        f.write(f"NCE {subject_id}: {nce}\n")
+    else:
+        print(f"Overall Confidence {subject_id}: {overall_confidence}\n")
+        print(f'Brier score subject{subject_id}: {brier}\n')
+        print(f"ECE {subject_id}: {ece}\n")
+        print(f"MCE {subject_id}: {mce}\n")
+        print(f"NCE {subject_id}: {nce}\n")
 
 
-def plot_calibration(y_predictions, y_test, confidences, subject_id, dataset_id,save=True):
+def plot_calibration(y_predictions, y_test, confidences, subject_id, dataset_id, save=True):
     prediction_confidences = np.max(confidences, axis=1)
     calibration.plot_calibration_curve(y_predictions, y_test, prediction_confidences,
                                        subject_id=subject_id, dataset_id=dataset_id, save=save)
     plt.clf()
     return
 
-# todo toevoegen van een functie voor entropy bij de SCN modellen
+# todo add function to get entropy with SCN models
