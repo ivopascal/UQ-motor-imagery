@@ -131,7 +131,7 @@ def get_nce(y_pred, y_true, y_confidences, num_bins=10, weighted=False):
             bin_acc = accuracy(filt_classes, filt_preds)
             bin_conf = np.mean(filt_confs)
 
-            error = (bin_conf - bin_acc)  # no abs because NCE does take direction
+            error = (bin_acc - bin_conf)   # no abs because NCE does take direction
             weight = len(filt_confs)
 
             errors.append(error)

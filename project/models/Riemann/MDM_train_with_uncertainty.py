@@ -64,6 +64,9 @@ def main():
 
             label_encoder = LabelEncoder()
             test_labels = label_encoder.fit_transform(y_test)
+
+            # todo kijken of dit goed werkt met Brier score
+
             predictions = label_encoder.fit_transform(y_pred)
 
             # plot and evaluate
