@@ -88,6 +88,8 @@ def main():
 
             prediction_proba = softmax(distances / temperature)
 
+            print("Prediction proba: ", prediction_proba)
+
             # confidence = np.max(prediction_proba, axis=1)
 
             entr = entropy(test_labels, predictions)
