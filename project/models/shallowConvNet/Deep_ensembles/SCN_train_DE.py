@@ -7,7 +7,7 @@ from keras.utils import np_utils
 from keras_uncertainty.utils import entropy
 
 from project.Utils.load_data import load_data
-from project.models.shallowConvNet.Deep_ensembles.SCNmodel import ShallowConvNet
+from project.models.shallowConvNet.Deep_ensembles.SCN_model_DE import ShallowConvNet
 from project.Utils.evaluate_and_plot import plot_confusion_and_evaluate, evaluate_uncertainty, plot_calibration
 
 from tqdm import tqdm
@@ -36,7 +36,7 @@ def main():
     n_classes = [2, 3, 2, 4]
 
     # This unfortunately cannot really be done more elegantly, because the paradigm to get the data needs
-    #   the number of classes, and the dataset not the dict of get_data can get the number of classes
+    #   the number of classes, and the dataset nor the dict of get_data can get the number of classes
 
     channels = [15, 14, 3, 22]  # the same holds here
     samples_data = [2561, 1251, 1126, 1001]
