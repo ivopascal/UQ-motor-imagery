@@ -1,14 +1,10 @@
 """Module for classification function."""
-"taken from: https://github.com/pyRiemann/pyRiemann/blob/master/pyriemann/classification.py and added uncertainty"
-
 import functools
 
 import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin, TransformerMixin
 from sklearn.utils.extmath import softmax
-from sklearn.pipeline import make_pipeline
 from joblib import Parallel, delayed
-import warnings
 
 from .utils.mean import mean_covariance
 from .utils.distance import distance
@@ -193,19 +189,3 @@ class MDM(BaseEstimator, ClassifierMixin, TransformerMixin):
             Probabilities for each class.
         """
         return softmax(-self._predict_distances(X) ** 2)
-
-    def predict_proba_temperature(self, X, temperature=1):
-        """Predict proba using softmax of distances divided by temperature.
-
-            Parameters
-            ----------
-            temperature : value that determines the spread of probabilities in the softmax function
-            X : ndarray, shape (n_matrices, n_channels, n_channels)
-                Set of SPD matrices.
-
-            Returns
-            -------
-            prob : ndarray, shape (n_matrices, n_classes)
-                Probabilities for each class.
-            """
-        return softmax(self._predict_distances(X) / temperature)
