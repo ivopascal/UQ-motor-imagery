@@ -3,7 +3,7 @@ from moabb.datasets import BNCI2014_001, BNCI2015_004, AlexMI, Zhou2016, BNCI201
 from moabb.paradigms import MotorImagery
 from pyriemann.estimation import Covariances
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, normalize
 from sklearn.utils import compute_sample_weight
 from sklearn.utils.extmath import softmax
 
@@ -55,26 +55,33 @@ def main():
             y_pred = model.predict(X_test)
 
             # Determine the confidence of the model
-            distances = model.transform(X_test)
+            distance_pred = model.transform(X_test)
+            distances = normalize(distance_pred, axis=1, norm='l1')
             temperature = find_best_temperature(y_pred, y_test, distances)
 
             prediction_proba = softmax(distances / temperature)
 
+            # prediction_proba = model.predict_proba(X_test)
+
             # confidence = np.max(prediction_proba, axis=1)
 
             label_encoder = LabelEncoder()
-            test_labels = label_encoder.fit_transform(y_test)
+
+            # todo kijken of dit goed werkt met Brier score
             predictions = label_encoder.fit_transform(y_pred)
+
+            test_labels = label_encoder.fit_transform(y_test)
+
 
             # plot and evaluate
             plot_confusion_and_evaluate(predictions, test_labels,
-                                        subject_id= subject_id, dataset_id=dataset_id, save=False)
+                                        subject_id= subject_id, dataset_id=dataset_id, save=True)
 
             evaluate_uncertainty(predictions, test_labels, prediction_proba,
-                                 subject_id=subject_id, dataset_id=dataset_id, save=False)
+                                 subject_id=subject_id, dataset_id=dataset_id, save=True)
 
             plot_calibration(predictions, test_labels, prediction_proba,
-                             subject_id=subject_id, dataset_id=dataset_id, save=False)
+                             subject_id=subject_id, dataset_id=dataset_id, save=True)
 
 
 if __name__ == '__main__':

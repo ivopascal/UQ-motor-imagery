@@ -50,7 +50,7 @@ def plot_calibration_curve(y_pred, y_true, y_confidences, subject_id, dataset_id
     plt.plot([0, 1], [0, 1], color='black', alpha=0.2)
     plt.xlabel("Confidence")
     plt.ylabel("Accuracy")
-    plt.title(f"Calibration Plot subject {subject_id}")
+    plt.title(f"Calibration Plot subject {subject_id}, dataset {dataset_id}")
     if save:
         plt.savefig(f"./graphs/calibration_plots/dataset{dataset_id}/calibration_subject{subject_id}.png")
     else:
@@ -131,7 +131,7 @@ def get_nce(y_pred, y_true, y_confidences, num_bins=10, weighted=False):
             bin_acc = accuracy(filt_classes, filt_preds)
             bin_conf = np.mean(filt_confs)
 
-            error = (bin_conf - bin_acc)  # no abs because NCE does take direction
+            error = (bin_acc - bin_conf)   # no abs because NCE does take direction
             weight = len(filt_confs)
 
             errors.append(error)
