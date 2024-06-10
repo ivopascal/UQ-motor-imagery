@@ -1,5 +1,6 @@
 from matplotlib import pyplot as plt
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
+from sklearn.preprocessing import LabelEncoder
 
 from project.Utils import calibration
 
@@ -21,17 +22,25 @@ def brier_score(confidences, true_labels):
     Returns:
     - The Brier score for the provided predictions and true labels.
     """
-    # confidences will be a 2d array in which every array contains of the confidences for all possible classes
+
+    # Convert true_labels to a numpy array if it is not already
+    true_labels = np.array(true_labels)
+
+    # Encode categorical labels to integers
+    label_encoder = LabelEncoder()
+    true_labels_encoded = label_encoder.fit_transform(true_labels)
+
+    # confidences will be a 2d array in which every array contains the confidences for all possible classes
     if confidences.ndim != 2:
         raise ValueError("Predictions array must be two-dimensional, got: ", confidences.ndim)
 
-    if len(confidences) != len(true_labels):
+    if len(confidences) != len(true_labels_encoded):
         raise ValueError("The length of predictions must match the length of true labels")
 
     true_probabilities = np.zeros_like(confidences)
 
-    # Assign 1 to the index of the true class, true_labels is 1d array with the prediction i.e. [1, 3, 0, 2, 1 etc.]
-    true_probabilities[np.arange(len(true_labels)), true_labels] = 1
+    # Assign 1 to the index of the true class
+    true_probabilities[np.arange(len(true_labels_encoded)), true_labels_encoded] = 1
 
     return np.mean(np.square(confidences - true_probabilities))
 
@@ -45,7 +54,7 @@ def plot_confusion_and_evaluate(y_pred, y_true, subject_id, dataset_id, save=Tru
     sns.heatmap(cm, annot=True, fmt="d", cmap="Blues")
     plt.xlabel("Predicted Labels")
     plt.ylabel("True Labels")
-    plt.title(f"Confusion Matrix subject {subject_id}")
+    plt.title(f"Confusion Matrix subject {subject_id}, dataset {dataset_id}")
     if save:
         plt.savefig(f"./graphs/confusion_plots/dataset{dataset_id}/confusion_subject{subject_id}.png")
         f = open(f"./results/dataset{dataset_id}/evaluation_subject{subject_id}.txt", "w")
