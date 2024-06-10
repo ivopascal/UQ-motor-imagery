@@ -1,19 +1,18 @@
 from keras.models import Model
-from keras.layers import Dense, Activation, Permute, Dropout
-from keras.layers import Conv2D, MaxPooling2D, AveragePooling2D
-from keras.layers import SeparableConv2D, DepthwiseConv2D
+from keras.layers import Dense, Activation, Dropout
+from keras.layers import Conv2D, AveragePooling2D
 from keras.layers import BatchNormalization
-from keras.layers import SpatialDropout2D
-from keras.regularizers import l1_l2
 from keras.layers import Input, Flatten
 from keras.constraints import max_norm
 from keras import backend as K
 
+
 def square(x):
     return K.square(x)
 
+
 def log(x):
-    return K.log(K.clip(x, min_value = 1e-7, max_value = 10000))
+    return K.log(K.clip(x, min_value=1e-7, max_value=10000))
 
 
 def ShallowConvNet(nb_classes, Chans=22, Samples=1001, dropoutRate=0.5):
@@ -41,16 +40,17 @@ def ShallowConvNet(nb_classes, Chans=22, Samples=1001, dropoutRate=0.5):
     original paper with minor deviations.
     """
 
-    # start the model
     input_main = Input((Chans, Samples, 1))
-    block1 = Conv2D(40, (1, 25),        #since sampling rate is 250 i use 25 instead of 13
+    block1 = Conv2D(40, (1, 25),  # sampling rate in used datasets is around 250,
+                    # so take the values of the original paper
                     input_shape=(Chans, Samples, 1),
                     kernel_constraint=max_norm(2., axis=(0, 1, 2)))(input_main)
     block1 = Conv2D(40, (Chans, 1), use_bias=False,
                     kernel_constraint=max_norm(2., axis=(0, 1, 2)))(block1)
     block1 = BatchNormalization(epsilon=1e-05, momentum=0.9)(block1)
     block1 = Activation(square)(block1)
-    block1 = AveragePooling2D(pool_size=(1, 75), strides=(1, 15))(block1)        #bigger pool size and strides because higher sampling rate
+    block1 = AveragePooling2D(pool_size=(1, 75), strides=(1, 15))(
+        block1)  # bigger pool size and strides because higher sampling rate
     block1 = Activation(log)(block1)
     block1 = Dropout(dropoutRate)(block1)
     flatten = Flatten()(block1)

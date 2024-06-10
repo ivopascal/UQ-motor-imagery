@@ -4,9 +4,7 @@ import functools
 import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin, TransformerMixin
 from sklearn.utils.extmath import softmax
-from sklearn.pipeline import make_pipeline
 from joblib import Parallel, delayed
-import warnings
 
 from .utils.mean import mean_covariance
 from .utils.distance import distance

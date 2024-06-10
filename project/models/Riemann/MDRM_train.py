@@ -10,7 +10,7 @@ from sklearn.utils.extmath import softmax
 from project.Utils.evaluate_and_plot import evaluate_uncertainty, plot_confusion_and_evaluate, plot_calibration
 from project.Utils.load_data import load_data
 from project.Utils.uncertainty_utils import find_best_temperature
-from project.models.Riemann.MDM_model import MDM
+from project.models.Riemann.MDRM_model import MDM
 
 import seaborn as sns
 
@@ -51,7 +51,7 @@ def main():
     dataset1 = BNCI2014_002()
     dataset2 = Zhou2016()
     dataset3 = BNCI2014_004()
-    dataset4 = BNCI2014_001()       # original one
+    dataset4 = BNCI2014_001()
 
     datasets = [dataset1, dataset2, dataset3, dataset4]
 
@@ -67,7 +67,6 @@ def main():
 
             X, y, metadata = load_data(dataset, subject_id, num_class)
 
-            # Compute covariance matrices from the raw EEG signals
             cov_estimator = Covariances(estimator='lwf')
             X_cov = cov_estimator.fit_transform(X)
 

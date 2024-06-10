@@ -3,7 +3,7 @@ from keras.layers import Dense, Activation, Dropout
 from keras.layers import Conv2D, AveragePooling2D
 from keras.layers import BatchNormalization
 from keras.optimizers import Adam
-from keras.layers import Input, Flatten
+from keras.layers import Flatten
 from keras.constraints import max_norm
 from keras import backend as K
 
@@ -11,7 +11,7 @@ from keras_uncertainty.layers import RBFClassifier
 from keras.regularizers import l2
 
 
-# Based on code by Matias Valdenegro Toro: https://github.com/mvaldenegro/keras-uncertainty
+# Based on code by Dr. Matias Valdenegro Toro: https://github.com/mvaldenegro/keras-uncertainty
 def add_l2_regularization(model, l2_strength=1e-4):
     for layer in model.layers:
         if layer.trainable_weights:
@@ -53,20 +53,16 @@ class ShallowConvNet:
     original paper with minor deviations.
     """
 
-    # todo checken of ik de strides en kernels enzo moet aanpassen op basis van de sampling rate (aantal HZ)f
 
     def build(self, nb_classes, Chans=22, Samples=1001, dropoutRate=0.5):
         model = keras.models.Sequential()
 
-        # model.add(Input((Chans, Samples, 1)))
-
-        model.add(Conv2D(40, (1, 25),  # since sampling rate is 250 so take the values of the original paper
+        model.add(Conv2D(40, (1, 25),  # sampling rate in used datasets is around 250,
+                         # so take the values of the original paper
                          input_shape=(Chans, Samples, 1),
                          kernel_constraint=max_norm(2., axis=(0, 1, 2)),
-                         # activation='linear', padding="SAME"       # This was used in the paper from Ivo
                          ))
         model.add(Conv2D(40, (Chans, 1), use_bias=False,
-                         # activation='linear', padding="SAME",
                          kernel_constraint=max_norm(2., axis=(0, 1, 2))
                          ))
 
@@ -83,7 +79,7 @@ class ShallowConvNet:
 
         model.add(RBFClassifier(nb_classes, length_scale=0.2))
 
-        optimizer = Adam(learning_rate=0.01)  # standard 0.001      # todo need to tweek this
+        optimizer = Adam(learning_rate=0.01)  # standard 0.001
 
         model.compile(loss="binary_crossentropy",
                       optimizer=optimizer, metrics=["categorical_accuracy"])

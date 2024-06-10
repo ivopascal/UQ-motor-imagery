@@ -53,7 +53,7 @@ def main():
 
             unique_labels = np.unique(y)
             num_unique_labels = len(unique_labels)
-            assert num_unique_labels == num_class, "The number of unique labels does not match the expected number of classes."
+            assert num_unique_labels == num_class, "The number of labels does not match the expected number of classes."
 
             X_reshaped = X.reshape(X.shape[0], X.shape[1], X.shape[2], 1)
 
@@ -71,7 +71,7 @@ def main():
                 optimizer = Adam(learning_rate=0.001)  # standard 0.001
                 model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
-                # weights = compute_sample_weight('balanced', y=y_train)
+                # weights = compute_sample_weight('balanced', y=y_train)    # can be used for balanced weights
                 model.fit(
                     X_train,
                     y_categorical,
@@ -92,7 +92,7 @@ def main():
             predicted_classes = np.argmax(prediction_proba, axis=1)
             # confidence = np.max(max_pred_0, axis=1)
 
-            entr = entropy(test_labels, prediction_proba)
+            entr = entropy(test_labels, prediction_proba)       # not further used for now
             print("Entropy: ", entr)
 
             # plot and evaluate

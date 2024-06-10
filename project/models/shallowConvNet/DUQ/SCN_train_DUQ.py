@@ -37,21 +37,21 @@ def main():
     n_classes = [2, 3, 2, 4]
 
     # This unfortunately cannot really be done more elegantly, because the paradigm to get the data needs
-    #   the number of classes, and the dataset not the dict of get_data can get the number of classes
+    #   the number of classes, and the dataset nor the dict of get_data can get the number of classes
 
     channels = [15, 14, 3, 22]        # the same holds here
     samples_data = [2561, 1251, 1126, 1001]
 
     for dataset, num_class, chans, samples in zip(datasets, n_classes, channels, samples_data):
         num_subjects = len(dataset.subject_list)
-        for subject_id in tqdm(range(1, num_subjects + 1)):       # loop to take data and make model per subject
+        for subject_id in tqdm(range(1, num_subjects + 1)):       # loop to take data and train model per subject
             dataset_id = datasets.index(dataset) + 1
 
             X, y, metadata = load_data(dataset, subject_id, num_class)
 
             unique_labels = np.unique(y)
             num_unique_labels = len(unique_labels)
-            assert num_unique_labels == num_class, "The number of unique labels does not match the expected number of classes."
+            assert num_unique_labels == num_class, "The number of labels does not match the expected number of classes."
 
             X_reshaped = X.reshape(X.shape[0], X.shape[1], X.shape[2], 1)
 
@@ -65,15 +65,15 @@ def main():
             net = ShallowConvNet()
             model = net.build(nb_classes=num_class, Chans=chans, Samples=samples, dropoutRate=0.5)
 
-            # weights = compute_sample_weight('balanced', y=y_train)
-            model.fit(      # train the model
+            # weights = compute_sample_weight('balanced', y=y_train)  # can be used when wanting to use balanced weights
+            model.fit(
                 X_train,
                 y_categorical,
                 callbacks=[early_stopping],
-                epochs=200, batch_size=64, validation_split=0.1 #, sample_weight=weights
-                ,verbose=0,
+                epochs=200, batch_size=64, validation_split=0.1,   # sample_weight=weights,
+                verbose=0,
             )
-            # model.save(f'../saved_trained_models/SCN/PerSubject/subject{subject_id}')
+            # model.save(f'../saved_trained_models/SCN/PerSubject/subject{subject_id}') # use to save the model
 
             label_encoder = LabelEncoder()
             test_labels = label_encoder.fit_transform(y_test)
@@ -88,11 +88,7 @@ def main():
 
             prediction_proba = softmax(distances / temperature)
 
-            print("Prediction proba: ", prediction_proba)
-
-            # confidence = np.max(prediction_proba, axis=1)
-
-            entr = entropy(test_labels, predictions)
+            entr = entropy(test_labels, predictions)        # not used for now
             print("Entropy: ", entr)
 
             # plot and evaluate
