@@ -104,4 +104,3 @@ def plot_calibration(y_predictions, y_test, confidences, subject_id, dataset_id,
     plt.clf()
     return
 
-# todo add function to get entropy with SCN models

@@ -4,6 +4,8 @@ example
 project/preprocessing/Oudated
 results
 project/Utils/extract_average_results.py
+project/models/shallowConvNet/hyperparamtuning
+project/preprocessing
 
 
 # Byte-compiled / optimized / DLL files

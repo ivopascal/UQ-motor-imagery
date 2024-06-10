@@ -7,7 +7,7 @@ from keras.utils import np_utils
 from keras_uncertainty.utils import entropy
 
 from project.Utils.load_data import load_data
-from project.models.shallowConvNet.Deep_ensembles.SCNmodel import ShallowConvNet
+from project.models.shallowConvNet.Deep_ensembles.SCN_model_DE import ShallowConvNet
 from project.Utils.evaluate_and_plot import plot_confusion_and_evaluate, evaluate_uncertainty, plot_calibration
 
 from tqdm import tqdm
@@ -36,7 +36,7 @@ def main():
     n_classes = [2, 3, 2, 4]
 
     # This unfortunately cannot really be done more elegantly, because the paradigm to get the data needs
-    #   the number of classes, and the dataset not the dict of get_data can get the number of classes
+    #   the number of classes, and the dataset nor the dict of get_data can get the number of classes
 
     channels = [15, 14, 3, 22]  # the same holds here
     samples_data = [2561, 1251, 1126, 1001]
@@ -53,7 +53,7 @@ def main():
 
             unique_labels = np.unique(y)
             num_unique_labels = len(unique_labels)
-            assert num_unique_labels == num_class, "The number of unique labels does not match the expected number of classes."
+            assert num_unique_labels == num_class, "The number of labels does not match the expected number of classes."
 
             X_reshaped = X.reshape(X.shape[0], X.shape[1], X.shape[2], 1)
 
@@ -71,7 +71,7 @@ def main():
                 optimizer = Adam(learning_rate=0.001)  # standard 0.001
                 model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
-                # weights = compute_sample_weight('balanced', y=y_train)
+                # weights = compute_sample_weight('balanced', y=y_train)    # can be used for balanced weights
                 model.fit(
                     X_train,
                     y_categorical,
@@ -92,18 +92,18 @@ def main():
             predicted_classes = np.argmax(prediction_proba, axis=1)
             # confidence = np.max(max_pred_0, axis=1)
 
-            entr = entropy(test_labels, prediction_proba)
+            entr = entropy(test_labels, prediction_proba)       # not further used for now
             print("Entropy: ", entr)
 
             # plot and evaluate
             plot_confusion_and_evaluate(predicted_classes, test_labels,
-                                        subject_id=subject_id, dataset_id=dataset_id, save=True)
+                                        subject_id=subject_id, dataset_id=dataset_id, save=False)
 
             evaluate_uncertainty(predicted_classes, test_labels, prediction_proba,
-                                 subject_id=subject_id, dataset_id=dataset_id, save=True)
+                                 subject_id=subject_id, dataset_id=dataset_id, save=False)
 
             plot_calibration(predicted_classes, test_labels, prediction_proba,
-                             subject_id=subject_id, dataset_id=dataset_id, save=True)
+                             subject_id=subject_id, dataset_id=dataset_id, save=False)
 
 
 

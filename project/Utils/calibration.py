@@ -27,7 +27,7 @@ def accuracy(y_true, y_pred):
     return np.mean(y_true == y_pred)
 
 
-def get_calibration_curve(y_pred, y_true, y_confidences, metric="mae", num_bins=5):
+def get_calibration_curve(y_pred, y_true, y_confidences, metric="mae", num_bins=10):
     """
         Estimates the calibration plot for a classifier and returns the points in the plot.
         y_pred are the class predictions of the model (integers), while y_true is the ground truth labels (integers),
