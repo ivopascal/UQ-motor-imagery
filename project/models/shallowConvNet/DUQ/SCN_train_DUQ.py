@@ -47,8 +47,9 @@ def main():
         for subject_id in tqdm(range(1, num_subjects + 1)):       # loop to take data and train model per subject
             dataset_id = datasets.index(dataset) + 1
 
-            X, y, metadata = load_data(dataset, subject_id, num_class)
-
+            X, y, _ = load_data(dataset, subject_id, num_class)
+            assert not np.isnan(X).any(), "Data contains NaN values"
+           
             unique_labels = np.unique(y)
             num_unique_labels = len(unique_labels)
             assert num_unique_labels == num_class, "The number of labels does not match the expected number of classes."
@@ -56,6 +57,9 @@ def main():
             X_reshaped = X.reshape(X.shape[0], X.shape[1], X.shape[2], 1)
 
             X_train, X_test, y_train, y_test = train_test_split(X_reshaped, y, test_size=0.2, random_state=42)
+            assert not np.isnan(X_train).any(), "Training data contains NaN values"
+            assert not np.isnan(X_test).any(), "Test data contains NaN values"
+
 
             # make the labels categorical
             label_encoder = LabelEncoder()
@@ -71,7 +75,7 @@ def main():
                 y_categorical,
                 callbacks=[early_stopping],
                 epochs=200, batch_size=64, validation_split=0.1,   # sample_weight=weights,
-                verbose=0,
+                verbose=1,
             )
             # model.save(f'../saved_trained_models/SCN/PerSubject/subject{subject_id}') # use to save the model
 
@@ -79,8 +83,10 @@ def main():
             test_labels = label_encoder.fit_transform(y_test)
 
             predictions = model.predict(X_test)
+            assert not np.isnan(predictions).any(), "Model predictions contain NaN values"
 
             predicted_classes = np.argmax(predictions, axis=1)
+            assert not np.isnan(predicted_classes).any(), "Model predicted classes contain NaN values"
 
             # Calculate probabilities with a softmax using a temperature to determine the confidence of the model
             distances = normalize(predictions, axis=1, norm='l1')
