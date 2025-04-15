@@ -1,17 +1,18 @@
 import matplotlib
 import pandas as pd
 from keras import Model
-from keras.callbacks import EarlyStopping
+from tensorflow.python.keras import utils
+from tensorflow.python.keras.callbacks import EarlyStopping
 from sklearn.utils.extmath import softmax
 # from keras.optimizers import Adam
-from tensorflow.keras.optimizers.legacy import Adam
+from tensorflow.python.keras.optimizer_v2.adam import Adam
 
 from matplotlib import pyplot as plt
 from moabb.datasets import BNCI2014_001, BNCI2014_002, Zhou2016, BNCI2014_004
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
-from tensorflow.keras import utils
+# from tensorflow.keras import utils
 from keras_uncertainty.utils import entropy
 
 import pickle as pkl

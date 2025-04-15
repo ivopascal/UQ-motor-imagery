@@ -11,8 +11,8 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils.extmath import softmax
-from tensorflow.keras import utils
-from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.python.keras import utils
+from tensorflow.python.keras.callbacks import EarlyStopping
 from tqdm import tqdm
 
 from project.models.shallowConvNet.DUQ.SCN_model_DUQ import ShallowConvNet

@@ -1,15 +1,17 @@
 import keras
-from keras.layers import Dense, Activation, Dropout
-from keras.layers import Conv2D, AveragePooling2D
-from keras.layers import BatchNormalization
+from keras.src.layers import BatchNormalization
+from tensorflow.python.keras.layers import Dense, Activation, Dropout
+from tensorflow.python.keras.layers import Conv2D, AveragePooling2D
+# from tensorflow.python.keras.layers import BatchNormalization
 # from keras.optimizers import Adam
-from tensorflow.keras.optimizers.legacy import Adam
-from keras.layers import Flatten
-from keras.constraints import max_norm
-import tensorflow.keras.backend as K
+# from tensorflow.python.keras.optimizers import Adam
+from tensorflow.python.keras.layers import Flatten
+from tensorflow.python.keras.constraints import max_norm
+import tensorflow.python.keras.backend as K
 
 from keras_uncertainty.layers import RBFClassifier
-from keras.regularizers import l2
+from tensorflow.python.keras.optimizer_v2.adam import Adam
+from tensorflow.python.keras.regularizers import l2
 
 
 # Based on code by Dr. Matias Valdenegro Toro: https://github.com/mvaldenegro/keras-uncertainty

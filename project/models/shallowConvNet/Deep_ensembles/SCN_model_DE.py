@@ -1,9 +1,9 @@
-from keras.models import Model
-from keras.layers import Dense, Activation, Dropout
-from keras.layers import Conv2D, AveragePooling2D
-from keras.layers import BatchNormalization
-from keras.layers import Input, Flatten
-from keras.constraints import max_norm
+from tensorflow.python.keras.models import Model
+from tensorflow.python.keras.layers import Dense, Activation, Dropout
+from tensorflow.python.keras.layers import Conv2D, AveragePooling2D
+from keras.src.layers import BatchNormalization
+from tensorflow.python.keras.layers import Input, Flatten
+from tensorflow.python.keras.constraints import max_norm
 from keras import backend as K
 
 
