@@ -1,7 +1,17 @@
 import matplotlib
 import pandas as pd
-from sklearn.utils.extmath import softmax
-from keras import optimizers, callbacks, utils, Model
+from keras import backend as K
+from keras import Model, utils, activations, optimizers
+from keras import callbacks
+
+
+
+#
+# from keras._tf_keras.keras.models import Model
+# from keras._tf_keras.keras import utils
+# from keras._tf_keras.keras.callbacks import EarlyStopping
+# from sklearn.utils.extmath import softmax
+# # from keras.optimizers import Adam
 
 from matplotlib import pyplot as plt
 from moabb.datasets import BNCI2014_001, BNCI2014_002, Zhou2016, BNCI2014_004
@@ -12,12 +22,12 @@ from keras_uncertainty.utils import entropy
 
 import pickle as pkl
 
-from tensorflow.python.keras.utils.np_utils import to_categorical
+# from keras._tf_keras.keras.utils import to_categorical
 
 from project.utils import calibration
 from project.utils.calibration import plot_calibration_curve
 from project.utils.load_data import load_data
-from project.models.shallowConvNet.Deep_ensembles.SCN_model_DE import ShallowConvNet
+from project.models.shallowConvNet.standard.standard_SCN_model import ShallowConvNet
 from project.utils.evaluate_and_plot import plot_confusion_and_evaluate, evaluate_uncertainty, plot_calibration, \
     brier_score
 
@@ -33,7 +43,7 @@ warnings.filterwarnings('ignore', category=UserWarning)
 
 
 def main():
-    temperature_scaling = True
+    temperature_scaling = False #TODO fout eruit halen
 
     early_stopping = callbacks.EarlyStopping(
         monitor='val_loss',
@@ -79,7 +89,7 @@ def main():
 
             label_encoder = LabelEncoder()
             y = label_encoder.fit_transform(y)
-            y = to_categorical(y, num_classes=num_unique_labels)
+            y = utils.to_categorical(y, num_classes=num_unique_labels)
 
             X_train, X_test, y_train, y_test = train_test_split(X_reshaped, y, test_size=0.2, random_state=42)
 
@@ -102,6 +112,7 @@ def main():
                 )
 
                 if temperature_scaling:
+                    assert model.layers[0].input is not None and len(model.layers[0].input) is not 0
                     logits_layer_model = Model(inputs=model.layers[0].input, outputs=model.layers[-2].output)
                     predictions[model_idx] = logits_layer_model.predict(X_test).squeeze()
                     train_predictions[model_idx] = logits_layer_model.predict(X_train).squeeze()
@@ -116,14 +127,14 @@ def main():
                 y_class_train = mean_train_logits.argmax(axis=1)
                 temperature = find_best_temperature(y_class_train, y_train.argmax(axis=1), mean_train_logits)
 
-                prediction_proba = softmax(mean_predictions / temperature)
+                prediction_proba = activations.softmax(mean_predictions / temperature)
             else:
                 prediction_proba = mean_predictions
             predicted_classes = np.argmax(mean_predictions, axis=1)
             # confidence = np.max(max_pred_0, axis=1)
 
-            entr = entropy(y_test, prediction_proba)       # not further used for now
-            print("Entropy: ", entr)
+            # entr = entropy(y_test, prediction_proba)       # not further used for now
+            # print("Entropy: ", entr)
             y_test = y_test.argmax(axis=1)
 
             all_predictions[dataset_id - 1].append(prediction_proba)
