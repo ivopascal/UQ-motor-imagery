@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 # ------------------------------------------------------------------
 # 1)  Choose an uncertainty definition
 # ------------------------------------------------------------------
-def get_uncertainty(p, mode="confidence"):
+def get_uncertainty(p, mode="uncertainty"):
     """
     Parameters
     ----------
@@ -17,52 +17,36 @@ def get_uncertainty(p, mode="confidence"):
     """
     if mode == "uncertainty":          # 1 − max‑probability, not 1 - for confidence
         return 1. - p.max(1)
+    if mode == "confidence":
+        return p.max(1)
     raise ValueError(f"unknown mode {mode}")
 
 
 def accuracy_coverage_curve(y_true, predicted, uncertainty, n_steps=50):
-    """
-    Returns
-    -------
-    coverages : fraction of samples kept
-    accuracies     : accuracy among kept samples
-    thresholds: corresponding uncertainty threshold
-    """
-    # Go from least uncertainty (so least confident) to most uncertain predictions,
-    # this way we reject atleast 1 sample and at most all samples, with n_steps sample in between
-    # this does not guarantee that every step has a different number of datapoints that fall in the range of uncertainty
+    t_grid = np.linspace(1.0, 0.0, n_steps, endpoint=True)
 
-    t_grid = np.linspace(uncertainty.min(), 1.0, n_steps, endpoint=True)
-    coverages, accuracies = [], []
+    coverages, accuracies, thresholds = [], [], []
 
-    print("Uncertainty: ", uncertainty)
-    print("number of samples: ", len(uncertainty))
+    num_samples = len(uncertainty)
+    print("Number of samples:", num_samples)
+    min_points = 5
 
     for threshold in t_grid:
-        # keep all samples that have less uncertainty (more confidence) than the threshold
-        # so we reject samples with too high uncertainty
-        keep = uncertainty <= threshold
-        print("threshold", threshold)
-
+        keep = uncertainty <= threshold                 # accept if uncertainty ≤ τ
         n_kept = keep.sum()
-        print("n_kept", n_kept)
-        min_points = 5
+        print(f"n_kept: {n_kept}")
+        cov    = n_kept / num_samples           # == keep.mean()
+        print(f"cov: {cov}")
 
-        cov  = keep.mean()
-        print("cov", cov)
-
-        if cov == 0:                 # if we reject all then skip
-            # acc = 1.0
-            print("We rejected all, accuracy = 1")
+        if n_kept < min_points:       # skip: not enough data to estimate acc
             continue
-        else:
-            if n_kept < min_points:  # if too little datapoints, continue
-                print("Too little datapoints, threshold was: ", threshold)
-                continue
-            acc = accuracy_score(y_true[keep], predicted[keep].argmax(1))
+        acc = accuracy_score(y_true[keep], predicted[keep].argmax(1))
 
         coverages.append(cov)
-        accuracies.append(acc)   #1 - acc for risk
+        accuracies.append(acc)
+        thresholds.append(threshold)
 
-    return np.asarray(coverages), np.asarray(accuracies), t_grid[:len(coverages)]
+    # by construction coverage decreases as τ decreases;
+    # you can convert to rejection later:  rejection = 1 – coverage
+    return np.asarray(coverages), np.asarray(accuracies), np.asarray(thresholds)
 
