@@ -15,20 +15,12 @@ def get_uncertainty(p, mode="confidence"):
     -------
     u : (N,) ndarray – larger  ⇒  more uncertain
     """
-    if mode == "entropy":
-        return -(p * np.log(np.clip(p, 1e-12, 1.))).sum(1)
-
     if mode == "uncertainty":          # 1 − max‑probability, not 1 - for confidence
         return 1. - p.max(1)
-
-    if mode == "margin":              # difference between best & 2nd best
-        top2 = -np.partition(-p, 1, axis=1)[:, :2]
-        return 1. - (top2[:, 0] - top2[:, 1])
-
     raise ValueError(f"unknown mode {mode}")
 
 
-def risk_coverage_curve(y_true, predicted, uncertainty, n_steps=50):
+def accuracy_coverage_curve(y_true, predicted, uncertainty, n_steps=50):
     """
     Returns
     -------
@@ -47,7 +39,15 @@ def risk_coverage_curve(y_true, predicted, uncertainty, n_steps=50):
         # keep all samples that have less uncertainty (more confidence) than the threshold
         # so we reject samples with too high uncertainty
         keep = uncertainty <= threshold
+
+        n_kept = keep.sum()
+        min_points = 5
+
+        if n_kept < min_points:  # if too little datapoints, continue
+            continue
+
         cov  = keep.mean()
+
         if cov == 0.0:                 # if we reject all then skip
             continue
         acc  = accuracy_score(y_true[keep], predicted[keep].argmax(1))

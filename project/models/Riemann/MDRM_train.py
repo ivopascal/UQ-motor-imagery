@@ -20,7 +20,7 @@ from project.utils.calibration import plot_calibration_curve
 from project.utils.evaluate_and_plot import evaluate_uncertainty, plot_confusion_and_evaluate, plot_calibration, \
     brier_score
 from project.utils.load_data import load_data
-from project.utils.rejection_coverage import risk_coverage_curve, get_uncertainty
+from project.utils.rejection_coverage import accuracy_coverage_curve, get_uncertainty
 from project.utils.uncertainty_utils import find_best_temperature
 
 warnings.filterwarnings('ignore', category=FutureWarning)
@@ -136,7 +136,7 @@ def main():
         labels_cat = np.concatenate(ds_all_labels, axis=0)
         uncert_cat = np.concatenate(ds_all_uncert, axis=0)
 
-        cov_ds, risk_ds, _ = risk_coverage_curve(labels_cat, preds_cat, uncert_cat, n_steps=50)
+        cov_ds, risk_ds, _ = accuracy_coverage_curve(labels_cat, preds_cat, uncert_cat, n_steps=50)
 
         # save figures (one per dataset for now)
         plt.figure(figsize=(5, 4))

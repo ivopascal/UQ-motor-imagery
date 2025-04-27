@@ -36,7 +36,7 @@ import numpy as np
 
 import warnings
 
-from project.utils.rejection_coverage import get_uncertainty, risk_coverage_curve
+from project.utils.rejection_coverage import get_uncertainty, accuracy_coverage_curve
 from project.utils.uncertainty_utils import find_best_temperature
 
 warnings.filterwarnings('ignore', category=FutureWarning)
@@ -163,7 +163,7 @@ def main():
         labels_cat = np.concatenate(ds_all_labels, axis=0)
         uncert_cat = np.concatenate(ds_all_uncert, axis=0)
 
-        cov_ds, risk_ds, _ = risk_coverage_curve(labels_cat, preds_cat, uncert_cat, n_steps=100)
+        cov_ds, risk_ds, _ = accuracy_coverage_curve(labels_cat, preds_cat, uncert_cat, n_steps=100)
 
         # save figures (one per dataset for now)
         plt.figure(figsize=(5, 4))
