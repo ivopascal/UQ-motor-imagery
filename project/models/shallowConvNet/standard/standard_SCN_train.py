@@ -44,7 +44,7 @@ warnings.filterwarnings('ignore', category=UserWarning)
 
 
 def main():
-    temperature_scaling = True #TODO fout eruit halen
+    temperature_scaling = False #TODO fout eruit halen
 
     early_stopping = callbacks.EarlyStopping(
         monitor='val_loss',

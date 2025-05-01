@@ -11,12 +11,36 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 from pyriemann.estimation import Covariances
 from moabb.datasets import BNCI2014_001, Zhou2016, BNCI2014_004, BNCI2014_002
 from sklearn.utils import compute_sample_weight
+from keras import callbacks, optimizers, utils
 
-
-# project-level utils ---------------------------------------------------------
 from project.utils.load_data import load_data
 from project.utils.uncertainty_utils import find_best_temperature
 from project.utils.rejection_coverage import accuracy_coverage_curve, get_uncertainty
+
+
+_earlystop = callbacks.EarlyStopping(
+    monitor="val_loss", patience=20, mode="min", restore_best_weights=True
+)
+
+
+def _train_single_scn(X_tr, y_tr, *, chans, samples, n_classes):
+    from project.models.shallowConvNet.standard.standard_SCN_model import ShallowConvNet
+
+    net = ShallowConvNet(nb_classes=n_classes,
+                         Chans=chans,
+                         Samples=samples,
+                         dropoutRate=0.5)
+    net.compile(optimizer=optimizers.Adam(learning_rate=1e-3),
+                loss="categorical_crossentropy",
+                metrics=["accuracy"])
+    net.fit(X_tr, y_tr,
+            epochs=100,
+            batch_size=64,
+            validation_split=0.1,
+            callbacks=[_earlystop],
+            verbose=0)
+    return net
+
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings('ignore', category=UserWarning)
@@ -110,17 +134,100 @@ def _run_mdrm(dataset, n_classes, temperature_scaling=False, *, random_state=42)
         np.concatenate(all_uncert,  axis=0)
     )
 
+def _run_scn_ensemble(dataset, n_classes,
+                      n_members: int = 5,
+                      *, random_state=42):
+
+    chans_by_ds   = {2:15, 3:14, 4:3, 1:22}
+    samples_by_ds = {2:2561, 3:1251, 4:1126, 1:1001}
+
+    all_preds, all_labels, all_uncert = [], [], []
+
+    for sid in range(1, len(dataset.subject_list) + 1):
+        X, y, _ = load_data(dataset, sid, n_classes)
+        y = utils.to_categorical(LabelEncoder().fit_transform(y), n_classes)
+        X = X.reshape(X.shape[0], X.shape[1], X.shape[2], 1)
+        X_tr, X_te, y_tr, y_te = train_test_split(
+            X, y, test_size=0.2, random_state=random_state
+        )
+
+        member_softmax = []
+        for _ in range(n_members):
+            net = _train_single_scn(X_tr, y_tr,
+                                    chans=chans_by_ds[n_classes],
+                                    samples=samples_by_ds[n_classes],
+                                    n_classes=n_classes)
+            member_softmax.append(net.predict(X_te))
+
+        proba = np.mean(member_softmax, axis=0)          # ensemble mean
+        all_preds.append(proba)
+        all_labels.append(y_te.argmax(1))
+        all_uncert.append(get_uncertainty(proba))
+
+    return (np.concatenate(all_preds),
+            np.concatenate(all_labels),
+            np.concatenate(all_uncert))
+
+
+def _run_duq(dataset, n_classes, *, random_state=42):
+    from project.models.shallowConvNet.DUQ.SCN_model_DUQ import ShallowConvNet
+
+    all_preds, all_labels, all_uncert = [], [], []
+
+    chans_by_ds = {2: 15, 3: 14, 4: 3, 1: 22}
+    samples_by_ds = {2: 2561, 3: 1251, 4: 1126, 1: 1001}
+
+    for sid in range(1, len(dataset.subject_list) + 1):
+        X, y, _ = load_data(dataset, sid, n_classes)
+        y = utils.to_categorical(LabelEncoder().fit_transform(y), n_classes)
+
+        # reshape to (N, Ch, T, 1) expected by SCN
+        X = X.reshape(X.shape[0], X.shape[1], X.shape[2], 1)
+
+        X_tr, X_te, y_tr, y_te = train_test_split(
+            X, y, test_size=0.2, random_state=random_state
+        )
+
+        net = ShallowConvNet()
+        model = net.build(nb_classes=n_classes,
+                          Chans=chans_by_ds[n_classes],
+                          Samples=samples_by_ds[n_classes],
+                          dropoutRate=0.5)
+
+        model.fit(X_tr, y_tr,
+                  epochs=200,
+                  batch_size=64,
+                  validation_split=0.10,
+                  callbacks=[_earlystop],
+                  verbose=0)
+
+        dist_tr = model.predict(X_tr) ** 2
+        T = find_best_temperature(dist_tr.argmax(1), y_tr.argmax(1), dist_tr)
+
+        dist_te = model.predict(X_te) ** 2
+        proba   = softmax(dist_te / T)          # shape (n_te, C)
+
+        all_preds.append(proba)
+        all_labels.append(y_te.argmax(1))
+        all_uncert.append(get_uncertainty(proba))   # 1 − confidence
+
+    return (np.concatenate(all_preds),
+            np.concatenate(all_labels),
+            np.concatenate(all_uncert))
 
 
 MODELS = [
     ("CSP-LDA",   partial(_run_csplda,   temperature_scaling=False)),
     ("MDRM",      partial(_run_mdrm,     temperature_scaling=False)),
     ("MDRM-T",    partial(_run_mdrm,     temperature_scaling=True)),
+    ("Standard-CNN", partial(_run_scn_ensemble, n_members=1)),
+    ("CNN-Ensemble", partial(_run_scn_ensemble, n_members=5)),
+    ("DUQ", partial(_run_duq)),
 ]
 
-# --------------------------------------------------------------------------- #
-#                               MAIN SCRIPT                                   #
-# --------------------------------------------------------------------------- #
+
+
+
 def main(n_steps: int = 50, out_dir: str = "./graphs/accuracy_coverage") -> None:
     out_path = Path(out_dir)
     out_path.mkdir(parents=True, exist_ok=True)
