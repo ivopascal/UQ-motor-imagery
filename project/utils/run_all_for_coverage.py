@@ -17,6 +17,17 @@ from project.utils.load_data import load_data
 from project.utils.uncertainty_utils import find_best_temperature
 from project.utils.rejection_coverage import accuracy_coverage_curve, get_uncertainty
 
+from tensorflow.python.keras import backend as tfK
+import keras_uncertainty.backend as KU           # <- existing module
+
+# ------------------------------------------------------------------
+# patch missing symbols only if they are absent
+# ------------------------------------------------------------------
+for _sym in ("mean", "square", "sum", "max", "min", "exp", "log"):
+    if not hasattr(KU, _sym):
+        setattr(KU, _sym, getattr(tfK, _sym))
+
+
 
 _earlystop = callbacks.EarlyStopping(
     monitor="val_loss", patience=20, mode="min", restore_best_weights=True
@@ -170,7 +181,8 @@ def _run_scn_ensemble(dataset, n_classes,
 
 
 def _run_duq(dataset, n_classes, *, random_state=42):
-    from project.models.shallowConvNet.DUQ.SCN_model_DUQ import ShallowConvNet
+    # from project.models.shallowConvNet.DUQ.SCN_model_DUQ import ShallowConvNet
+    from project.models.shallowConvNet.DUQ.SCN_DUQ_model_new import ShallowConvNet
 
     all_preds, all_labels, all_uncert = [], [], []
 
@@ -188,18 +200,21 @@ def _run_duq(dataset, n_classes, *, random_state=42):
             X, y, test_size=0.2, random_state=random_state
         )
 
-        net = ShallowConvNet()
-        model = net.build(nb_classes=n_classes,
-                          Chans=chans_by_ds[n_classes],
-                          Samples=samples_by_ds[n_classes],
-                          dropoutRate=0.5)
+        model = ShallowConvNet(nb_classes=n_classes,
+                             Chans=chans_by_ds[n_classes],
+                             Samples=samples_by_ds[n_classes],
+                             dropoutRate=0.5)
+
+        optimizer = optimizers.Adam(learning_rate=0.01)  # standard 0.001
+        model.compile(loss="binary_crossentropy",
+                      optimizer=optimizer, metrics=["categorical_accuracy"])
 
         model.fit(X_tr, y_tr,
-                  epochs=200,
-                  batch_size=64,
-                  validation_split=0.10,
-                  callbacks=[_earlystop],
-                  verbose=0)
+                epochs=100,
+                batch_size=64,
+                validation_split=0.1,
+                callbacks=[_earlystop],
+                verbose=0)
 
         dist_tr = model.predict(X_tr) ** 2
         T = find_best_temperature(dist_tr.argmax(1), y_tr.argmax(1), dist_tr)
@@ -217,12 +232,12 @@ def _run_duq(dataset, n_classes, *, random_state=42):
 
 
 MODELS = [
+    ("DUQ", partial(_run_duq)),
+    ("Standard-CNN", partial(_run_scn_ensemble, n_members=1)),
+    ("CNN-Ensemble", partial(_run_scn_ensemble, n_members=5)),
     ("CSP-LDA",   partial(_run_csplda,   temperature_scaling=False)),
     ("MDRM",      partial(_run_mdrm,     temperature_scaling=False)),
     ("MDRM-T",    partial(_run_mdrm,     temperature_scaling=True)),
-    ("Standard-CNN", partial(_run_scn_ensemble, n_members=1)),
-    ("CNN-Ensemble", partial(_run_scn_ensemble, n_members=5)),
-    ("DUQ", partial(_run_duq)),
 ]
 
 

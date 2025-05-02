@@ -27,6 +27,11 @@ def add_l2_regularization(model, l2_strength=1e-4):
     #         model.add_loss(l2(l2_strength)(tw))
 
 
+# def add_l2_regularization(model, l2_strength=1e-4):
+#     for layer in model.layers:
+#         for tw in layer.trainable_weights:
+#             model.add_loss(regularizers.l2(l2_strength)(tw))
+
 
 def square(x):
     return K.square(x)
@@ -87,11 +92,11 @@ class ShallowConvNet:
 
         model.add(RBFClassifier(nb_classes, length_scale=0.2))
 
+        add_l2_regularization(model)
+
         optimizer = optimizers.Adam(learning_rate=0.01)  # standard 0.001
 
         model.compile(loss="binary_crossentropy",
                       optimizer=optimizer, metrics=["categorical_accuracy"])
-
-        add_l2_regularization(model)
 
         return model
