@@ -149,13 +149,17 @@ def _run_scn_ensemble(dataset, n_classes,
                       n_members: int = 5,
                       *, random_state=42):
 
-    chans_by_ds   = {2:15, 3:14, 4:3, 1:22}
-    samples_by_ds = {2:2561, 3:1251, 4:1126, 1:1001}
+    # chans_by_ds   = {2:15, 3:14, 4:3, 1:22}
+    # samples_by_ds = {2:2561, 3:1251, 4:1126, 1:1001}
 
     all_preds, all_labels, all_uncert = [], [], []
 
     for sid in range(1, len(dataset.subject_list) + 1):
         X, y, _ = load_data(dataset, sid, n_classes)
+
+        chans = X.shape[1]
+        samples = X.shape[2]
+
         y = utils.to_categorical(LabelEncoder().fit_transform(y), n_classes)
         X = X.reshape(X.shape[0], X.shape[1], X.shape[2], 1)
         X_tr, X_te, y_tr, y_te = train_test_split(
@@ -165,8 +169,10 @@ def _run_scn_ensemble(dataset, n_classes,
         member_softmax = []
         for _ in range(n_members):
             net = _train_single_scn(X_tr, y_tr,
-                                    chans=chans_by_ds[n_classes],
-                                    samples=samples_by_ds[n_classes],
+                                    # chans=chans_by_ds[n_classes],
+                                    # samples=samples_by_ds[n_classes],
+                                    chans=chans,
+                                    samples=samples,
                                     n_classes=n_classes)
             member_softmax.append(net.predict(X_te))
 
@@ -186,11 +192,15 @@ def _run_duq(dataset, n_classes, *, random_state=42):
 
     all_preds, all_labels, all_uncert = [], [], []
 
-    chans_by_ds = {2: 15, 3: 14, 4: 3, 1: 22}
-    samples_by_ds = {2: 2561, 3: 1251, 4: 1126, 1: 1001}
+    # chans_by_ds = {2: 15, 3: 14, 4: 3, 1: 22}
+    # samples_by_ds = {2: 2561, 3: 1251, 4: 1126, 1: 1001}
 
     for sid in range(1, len(dataset.subject_list) + 1):
         X, y, _ = load_data(dataset, sid, n_classes)
+
+        chans = X.shape[1]
+        samples = X.shape[2]
+
         y = utils.to_categorical(LabelEncoder().fit_transform(y), n_classes)
 
         # reshape to (N, Ch, T, 1) expected by SCN
@@ -201,9 +211,11 @@ def _run_duq(dataset, n_classes, *, random_state=42):
         )
 
         model = ShallowConvNet(nb_classes=n_classes,
-                             Chans=chans_by_ds[n_classes],
-                             Samples=samples_by_ds[n_classes],
-                             dropoutRate=0.5)
+                             # Chans=chans_by_ds[n_classes],
+                             # Samples=samples_by_ds[n_classes],
+                            Chans=chans,
+                            Samples=samples,
+                            dropoutRate=0.5)
 
         optimizer = optimizers.Adam(learning_rate=0.01)  # standard 0.001
         model.compile(loss="binary_crossentropy",
@@ -255,7 +267,7 @@ def main(n_steps: int = 50, out_dir: str = "./graphs/accuracy_coverage") -> None
     for ds_idx, (ds_name, ds_obj, n_cls) in enumerate(DATASETS):
         # print(f"\n=== Dataset {ds_idx+1} / {len(DATASETS)}  |  {ds_name} ===")
         for model_name, runner in MODELS:
-            # print(f"  → {model_name} …", end="", flush=True)
+            print(f"  → {model_name} …", end="", flush=True)
 
             preds, labels, uncert = runner(ds_obj, n_cls)
 
@@ -264,7 +276,7 @@ def main(n_steps: int = 50, out_dir: str = "./graphs/accuracy_coverage") -> None
             )
             # accuracy = 1.0 - risk
             curves[ds_idx][model_name] = (coverage, accuracy)
-            # print(" done.")
+            print(" done.")
 
     np.savez(out_path / "all_accuracy_coverage_curves.npz", **{
         f"ds{ds_idx}_{model_name.replace(' ', '_')}": (cov, acc)
