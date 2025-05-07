@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import pickle as pkl
+import time
 from matplotlib import pyplot as plt
 from moabb.datasets import BNCI2014_001, Zhou2016, BNCI2014_004, BNCI2014_002
 from pyriemann.estimation import Covariances
@@ -55,7 +56,7 @@ def plot_covariance_matrices(mdm, num_classes):
 
 
 def main():
-    temperature_scaling = True
+    temperature_scaling = False
     dataset1 = BNCI2014_002()
     dataset2 = Zhou2016()
     dataset3 = BNCI2014_004()
@@ -70,6 +71,10 @@ def main():
 
     all_predictions = []
     all_test_labels = []
+    train_times = []
+    inference_times = []
+    inference_counts = []
+
     for dataset, num_class in zip(datasets, n_classes):
         num_subjects = len(dataset.subject_list)
         all_predictions.append([])
@@ -88,24 +93,31 @@ def main():
 
             model = MDM(metric=dict(mean='riemann', distance='riemann'))
 
+            start_time = time.time()
             model.fit(X_train, y_train, sample_weight=weights)
+            train_times.append(time.time() - start_time)
 
             # plot_covariance_matrices(model, num_class)
 
             # Predict the labels for the test set
-            y_pred = model.predict(X_test)
 
             # Determine the confidence of the model
+            y_pred = model.predict(X_test)
             if temperature_scaling:
                 y_pred_train = model.predict(X_train)
                 distances_train = -model.transform(X_train) ** 2
                 temperature = find_best_temperature(y_pred_train, y_train, distances_train)
 
+                start_time = time.time()
                 distance_pred = model.transform(X_test)
                 distances = -distance_pred ** 2
                 prediction_proba = softmax(distances / temperature)
             else:
+                start_time = time.time()
                 prediction_proba = model.predict_proba(X_test)
+
+            inference_times.append(time.time() - start_time)
+            inference_counts.append(y_pred.shape[0])
 
             all_predictions[dataset_id - 1].append(prediction_proba)
             all_test_labels[dataset_id - 1].append(y_test)
@@ -175,6 +187,9 @@ def main():
                                                          np.array(all_labels),
                                                          np.array(all_confidences),
                                                          subject_id="", dataset_id=dataset_id+1, save=True))
+
+    print(f"Average train time: {np.mean(train_times)}")
+    print(f"Average inference time: {np.mean(np.array(inference_times) / np.array(inference_counts))} per sample")
 
     results = pd.DataFrame(results)
     if temperature_scaling:

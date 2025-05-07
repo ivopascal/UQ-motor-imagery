@@ -1,4 +1,5 @@
 import keras
+import time
 from keras.layers import Dense, Activation, Dropout
 from keras.layers import Conv2D, AveragePooling2D
 from keras.layers import BatchNormalization

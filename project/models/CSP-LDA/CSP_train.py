@@ -14,6 +14,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils.extmath import softmax
+import time
+
 
 from project.utils import calibration
 from project.utils.calibration import plot_calibration_curve
@@ -41,6 +43,9 @@ def main():
 
     all_predictions = []
     all_test_labels = []
+    train_times = []
+    inference_times = []
+    inference_counts = []
     for dataset, num_class in zip(datasets, n_classes):
         num_subjects = len(dataset.subject_list)
         all_predictions.append([])
@@ -55,10 +60,15 @@ def main():
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
             model = make_pipeline(CSP(n_components=8), LDA())
 
+            start_time = time.time()
             model.fit(X_train, y_train)
+            train_times.append(time.time() - start_time)
 
             # Predict the labels for the test set
+            start_time = time.time()
             y_pred = model.predict(X_test)
+            inference_times.append(time.time() - start_time)
+            inference_counts.append(y_pred.shape[0])
 
             # Determine the confidence of the model
             if temperature_scaling:
@@ -96,6 +106,10 @@ def main():
         "Accuracy": [],
         "Accuracy_std": [],
     }
+
+    print(f"Average train time: {np.mean(train_times)}")
+    print(f"Average inference time: {np.mean(np.array(inference_times) / np.array(inference_counts))} per sample")
+
     calibration_curves = []
     for dataset_id, (dataset_predictions, dataset_labels) in enumerate(zip(all_predictions, all_test_labels)):
         brier_scores = []

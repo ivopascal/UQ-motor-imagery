@@ -4,6 +4,7 @@ import warnings
 import matplotlib
 import numpy as np
 import pandas as pd
+import time
 from keras_uncertainty.utils import entropy
 from matplotlib import pyplot as plt
 from moabb.datasets import BNCI2014_001, BNCI2014_002, Zhou2016, BNCI2014_004
@@ -52,6 +53,9 @@ def main():
 
     all_predictions = []
     all_test_labels = []
+    train_times = []
+    inference_times = []
+    inference_counts = []
     for dataset, num_class, chans, samples in zip(datasets, n_classes, channels, samples_data):
         num_subjects = len(dataset.subject_list)
         all_predictions.append([])
@@ -80,6 +84,7 @@ def main():
             net = ShallowConvNet()
             model = net.build(nb_classes=num_class, Chans=chans, Samples=samples, dropoutRate=0.5)
 
+            start_time = time.time()
             # weights = compute_sample_weight('balanced', y=y_train)  # can be used when wanting to use balanced weights
             model.fit(
                 X_train,
@@ -89,20 +94,27 @@ def main():
                 batch_size=64, validation_split=0.1,   # sample_weight=weights,
                 verbose=0,
             )
+            train_times.append(time.time() - start_time)
+
             model.save(f'./saved_trained_models/SCN/PerSubject/subject{subject_id}')  # use to save the model
 
+            start_time = time.time()
             predictions_test = model.predict(X_test)
-            assert not np.isnan(predictions_test).any(), "Model predictions contain NaN values"
-
+            prediction_proba = predictions_test
+            # assert not np.isnan(predictions_test).any(), "Model predictions contain NaN values"
+            #
+            inference_times.append(time.time() - start_time)
+            inference_counts.append(predictions_test.shape[0])
+            #
             predicted_classes = np.argmax(predictions_test, axis=1)
-            assert not np.isnan(predicted_classes).any(), "Model predicted classes contain NaN values"
-
-            # Calculate probabilities with a softmax using a temperature to determine the confidence of the model
-            distances_train = model.predict(X_train) ** 2
-            temperature = find_best_temperature(distances_train.argmax(axis=1), y_train.argmax(axis=1), distances_train)
-
-            distances_test = predictions_test ** 2
-            prediction_proba = softmax(distances_test / temperature)
+            # assert not np.isnan(predicted_classes).any(), "Model predicted classes contain NaN values"
+            #
+            # # Calculate probabilities with a softmax using a temperature to determine the confidence of the model
+            # distances_train = model.predict(X_train) ** 2
+            # temperature = find_best_temperature(distances_train.argmax(axis=1), y_train.argmax(axis=1), distances_train)
+            #
+            # distances_test = predictions_test ** 2
+            # prediction_proba = softmax(distances_test / temperature)
 
             entr = entropy(y_test, prediction_proba)        # not used for now
             print("Entropy: ", entr)
@@ -120,6 +132,9 @@ def main():
 
             plot_calibration(predicted_classes, y_test, prediction_proba,
                              subject_id=subject_id, dataset_id=dataset_id, save=True)
+
+    print(f"Average train time: {np.mean(train_times)}")
+    print(f"Average inference time: {np.mean(np.array(inference_times) / np.array(inference_counts))} per sample")
 
     plt.style.use('classic')
     results = {
@@ -177,14 +192,14 @@ def main():
                                                          subject_id="", dataset_id=dataset_id+1, save=True))
 
     results = pd.DataFrame(results)
-    results.to_csv("./results/DUQ_results.csv", index=False)
+    results.to_csv("./results/DUQ-no-softmax_results.csv", index=False)
 
     print(results)
     print(results.mean())
 
     matplotlib.rc_file_defaults()
 
-    pkl.dump(calibration_curves, open("./results/Riemann_MDRM-calibration_curves.pkl", "wb"))
+    pkl.dump(calibration_curves, open("./results/DUQ-no-softmax-calibration_curves.pkl", "wb"))
 
     plt.plot([0, 1], [0, 1], color='black', alpha=0.5, linestyle='dashed', label='_nolegend_')
     for x, y in calibration_curves:
@@ -195,8 +210,8 @@ def main():
     plt.xticks(fontsize=16)
     plt.yticks(fontsize=16)
 
-    plt.savefig(f"./graphs/calibration_plots/DUQ.pdf", bbox_inches='tight')
-    pkl.dump(calibration_curves, open("./results/DUQ-calibration_curves.pkl", "wb"))
+    plt.savefig(f"./graphs/calibration_plots/DUQ-no-softmax.pdf", bbox_inches='tight')
+    pkl.dump(calibration_curves, open("./results/DUQ-no-softmax-calibration_curves.pkl", "wb"))
 
     plt.clf()
 

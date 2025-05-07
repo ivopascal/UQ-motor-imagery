@@ -1,5 +1,6 @@
 import matplotlib
 import pandas as pd
+import time
 from keras import Model
 from keras.callbacks import EarlyStopping
 from sklearn.utils.extmath import softmax
@@ -35,7 +36,7 @@ warnings.filterwarnings('ignore', category=UserWarning)
 
 
 def main():
-    temperature_scaling = True
+    temperature_scaling = False
 
     early_stopping = EarlyStopping(
         monitor='val_loss',
@@ -63,6 +64,9 @@ def main():
 
     all_predictions = []
     all_test_labels = []
+    train_times = []
+    inference_times = []
+    inference_counts = []
     for dataset, num_class, chans, samples in zip(datasets, n_classes, channels, samples_data):
         num_subjects = len(dataset.subject_list)
         all_predictions.append([])
@@ -87,6 +91,8 @@ def main():
 
             predictions = np.zeros((num_models, X_test.shape[0], num_class))
             train_predictions = np.zeros((num_models, X_train.shape[0], num_class))
+            total_train_time = 0
+            total_inference_time = 0
             for model_idx in tqdm(range(num_models)):
 
                 model = ShallowConvNet(nb_classes=num_class, Chans=chans, Samples=samples, dropoutRate=0.5)
@@ -94,6 +100,7 @@ def main():
                 model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
                 # weights = compute_sample_weight('balanced', y=y_train)    # can be used for balanced weights
+                start_time = time.time()
                 model.fit(
                     X_train,
                     y_train,
@@ -102,15 +109,21 @@ def main():
                     batch_size=64, validation_split=0.1,   # sample_weighTt=weights,
                     verbose=0,
                 )
+                total_train_time += (time.time() - start_time)
 
+                start_time = time.time()
                 if temperature_scaling:
                     logits_layer_model = Model(inputs=model.layers[0].input, outputs=model.layers[-2].output)
                     predictions[model_idx] = logits_layer_model.predict(X_test).squeeze()
                     train_predictions[model_idx] = logits_layer_model.predict(X_train).squeeze()
                 else:
                     predictions[model_idx] = model.predict(X_test)
+                total_inference_time += (time.time() - start_time)
 
             mean_predictions = np.mean(np.array([predictions]), axis=0).squeeze()
+            train_times.append(total_train_time)
+            inference_times.append(total_inference_time)
+            inference_counts.append(mean_predictions.shape[0])
 
             if temperature_scaling:
                 mean_train_logits = np.mean(np.array([train_predictions]), axis=0).squeeze()
@@ -140,6 +153,9 @@ def main():
 
             plot_calibration(predicted_classes, y_test, prediction_proba,
                              subject_id=subject_id, dataset_id=dataset_id, save=True)
+
+    print(f"Average train time: {np.mean(train_times)}")
+    print(f"Average inference time: {np.mean(np.array(inference_times) / np.array(inference_counts))} per sample")
 
     plt.style.use('classic')
     results = {
@@ -197,14 +213,14 @@ def main():
                                                          subject_id="", dataset_id=dataset_id+1, save=True))
 
     results = pd.DataFrame(results)
-    results.to_csv("./results/CNN-T_results.csv", index=False)
+    results.to_csv("./results/CNN_results.csv", index=False)
 
     print(results)
     print(results.mean())
 
     matplotlib.rc_file_defaults()
 
-    pkl.dump(calibration_curves, open("./results/CNN-T-calibration_curves.pkl", "wb"))
+    pkl.dump(calibration_curves, open("./results/CNN-calibration_curves.pkl", "wb"))
 
     plt.plot([0, 1], [0, 1], color='black', alpha=0.5, linestyle='dashed', label='_nolegend_')
     for x, y in calibration_curves:
@@ -215,8 +231,8 @@ def main():
     plt.xticks(fontsize=14)
     plt.yticks(fontsize=14)
 
-    plt.savefig(f"./graphs/calibration_plots/CNN-T.pdf")
-    pkl.dump(calibration_curves, open("./results/CNN-T-calibration_curves.pkl", "wb"))
+    plt.savefig(f"./graphs/calibration_plots/CNN.pdf", bbox_inches='tight')
+    pkl.dump(calibration_curves, open("./results/CNN-calibration_curves.pkl", "wb"))
 
     plt.clf()
 
